@@ -10,3 +10,7 @@ dist
 .vercel 
 /src/docs/docling/**
 /src/docs/odl/**
+/src/docs/chunked/**
+
+*.duckdb
+*.duckdb.wal
