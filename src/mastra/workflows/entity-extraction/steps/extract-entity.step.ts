@@ -51,7 +51,7 @@ export const extractEntityAgentStep = createStep({
       ...entity,
       sourceChunkId: inputData.id,
       type: normalizeValue(entity.type),
-      aliases: entity.aliases ? Array.from(new Set(entity.aliases.map(normalizeValue).filter(Boolean))) : undefined,
+      aliases: Array.from(new Set(entity.aliases.map(normalizeValue).filter(Boolean)))
     }))
 
     const knownTypeSet = new Set(knownTypes.map(normalizeValue))

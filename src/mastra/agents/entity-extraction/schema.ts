@@ -5,7 +5,6 @@ const nonEmptyStringSchema = z.string().trim().min(1, { message: "Required" })
 const uniqueStringArraySchema = z
   .array(nonEmptyStringSchema)
   .transform((values) => Array.from(new Set(values.map((value) => value.trim()))))
-  .optional()
 
 export const candidateEntitySchema = z.object({
   name: nonEmptyStringSchema.describe(
@@ -30,7 +29,6 @@ export const candidateEntitySchema = z.object({
     .describe("Optional confidence score between 0 and 1 for this extraction."),
   typeStatus: z
     .enum(["existing", "new"])
-    .optional()
     .describe("Mark as 'existing' when type matches known types, otherwise 'new'."),
 })
 
