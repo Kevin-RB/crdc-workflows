@@ -9,10 +9,11 @@ import { weatherWorkflow } from './workflows/weather-workflow';
 import { weatherAgent } from './agents/weather-agent';
 import { toolCallAppropriatenessScorer, completenessScorer, translationScorer } from './scorers/weather-scorer';
 import { entityExtractionWorkflow } from '@/mastra/workflows/entity-extraction-workflow';
+import { entityExtractionAgent } from '@/mastra/agents/entity-extraction/entity-extraction-agent';
 
 export const mastra = new Mastra({
   workflows: { weatherWorkflow, entityExtractionWorkflow },
-  agents: { weatherAgent },
+  agents: { weatherAgent, entityExtractionAgent },
   scorers: { toolCallAppropriatenessScorer, completenessScorer, translationScorer },
   storage: new MastraCompositeStore({
     id: 'composite-storage',
