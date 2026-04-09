@@ -6,7 +6,7 @@ export const entityExtractionAgent = new Agent({
     name: "Entity Extraction Agent",
     instructions: ENTITY_EXTRACTION_PROMPT,
     model:{
-        id: 'lmstudio/google/gemma-4-e4b',
+        id: 'lmstudio/nvidia/nemotron-3-nano-4b',
         url: 'http://127.0.0.1:1234/v1'
     }
 })
