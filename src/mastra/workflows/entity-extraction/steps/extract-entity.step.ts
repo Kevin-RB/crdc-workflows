@@ -41,7 +41,14 @@ export const extractEntityAgentStep = createStep({
       },
     )
 
-    const parsed = chunkExtractionOutputSchema.safeParse(response.object)
+    console.log(response.reasoningText)
+
+    if (!response.reasoningText)
+      throw new Error("No reasining found in agetn response")
+
+    const parsedReasoning = JSON.parse(response.reasoningText)
+
+    const parsed = chunkExtractionOutputSchema.safeParse(parsedReasoning.elements)
 
     if (!parsed.success) {
       throw new Error(`Failed to parse entity extraction output: ${parsed.error.message}`)
