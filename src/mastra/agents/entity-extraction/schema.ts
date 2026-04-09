@@ -19,9 +19,6 @@ export const candidateEntitySchema = z.object({
   description: nonEmptyStringSchema.describe(
     "Concise factual description grounded in the chunk text. Do not invent details not present in the chunk.",
   ),
-  sourceChunkId: nonEmptyStringSchema.describe(
-    "ID of the source chunk where this entity was extracted from.",
-  ),
   confidence: z
     .number()
     .min(0)
