@@ -11,6 +11,7 @@ dist
 /src/docs/docling/**
 /src/docs/odl/**
 /src/docs/chunked/**
+/src/docs/entity-extraction/**
 
 *.duckdb
 *.duckdb.wal

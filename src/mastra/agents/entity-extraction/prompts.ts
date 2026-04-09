@@ -24,14 +24,6 @@ TYPE ASSIGNMENT RULES
    - "existing" when using a known type
    - "new" when introducing a new type
 
-ENTITY FIELD RULES
-- name: canonical, concise, unambiguous label (preferred display name)
-- aliases: alternative names, synonyms, or acronyms from the chunk; no duplicates
-- description: short factual definition grounded in the chunk (1-2 sentences max)
-- sourceChunkId: always set to the provided chunk id
-- evidence: optional short supporting quote from the chunk
-- confidence: optional number in [0,1] reflecting extraction certainty
-
 QUALITY CHECKS BEFORE RETURNING
 - Every entity must be explicitly supported by the chunk text.
 - Avoid duplicates within the same chunk output (same name + type).
