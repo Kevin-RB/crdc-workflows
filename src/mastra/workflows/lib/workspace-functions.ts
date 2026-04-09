@@ -3,8 +3,6 @@ import { access } from "node:fs/promises"
 import path from "node:path"
 
 
-export const DEFAULT_DOC_PATH = "src/docs/odl/2025 Australian Cotton Production Manual_interactive_sml.json"
-
 const PACKAGE_JSON = "package.json"
 export const CHUNKED_OUTPUT_DIR = "src/docs/chunked"
 

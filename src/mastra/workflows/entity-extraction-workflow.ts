@@ -25,6 +25,6 @@ export const entityExtractionWorkflow = createWorkflow({
     [async ({ inputData }) => inputData.useDummy === true, dummyChunksWorkflow],
     [async ({ inputData }) => inputData.useDummy !== true, documentChunksWorkflow],
   ])
-  .then(validateChunksStep)
-  .foreach(extractEntityAgentStep)
+  // .then(validateChunksStep)
+  // .foreach(extractEntityAgentStep)
   .commit()
