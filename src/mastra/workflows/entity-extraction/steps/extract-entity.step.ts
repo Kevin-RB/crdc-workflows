@@ -26,9 +26,7 @@ export const extractEntityAgentStep = createStep({
     const rawCandidateEntities = state.rawCandidateEntities ?? []
 
     const prompt = buildEntityExtractionUserPrompt({
-      chunkId: inputData.id,
       chunkText: inputData.content,
-      chunkMetadata: inputData.metadata,
       knownTypes,
     })
 

@@ -41,17 +41,6 @@ QUALITY CHECKS BEFORE RETURNING
 Return only data that conforms to the required structured schema.
 `
 
-type ChunkPromptInput = {
-  chunkId: string
-  chunkText: string
-  chunkMetadata?: {
-    heading?: string | null
-    page?: number | null
-    source?: string | null
-  }
-  knownTypes: string[]
-}
-
 const formatKnownTypes = (knownTypes: string[]): string =>{
     if (knownTypes.length === 0) {
         return "- (none yet)"
@@ -60,14 +49,12 @@ const formatKnownTypes = (knownTypes: string[]): string =>{
 }
 
 export const buildEntityExtractionUserPrompt = ({
-  chunkId,
   chunkText,
-  chunkMetadata,
   knownTypes,
-}: ChunkPromptInput): string => {
-  const heading = chunkMetadata?.heading ?? "N/A"
-  const page = chunkMetadata?.page ?? "N/A"
-  const source = chunkMetadata?.source ?? "N/A"
+}: {
+  chunkText: string
+  knownTypes: string[]
+}): string => {
 
   return `
 Extract candidate entities from the chunk below.
@@ -75,19 +62,13 @@ Extract candidate entities from the chunk below.
 Known entity types:
 ${formatKnownTypes(knownTypes)}
 
-Chunk context:
-- chunkId: ${chunkId}
-- heading: ${heading}
-- page: ${page}
-- source: ${source}
 
 Instructions for this chunk:
 1) Extract only entities supported by the chunk text.
 2) Reuse known types when they fit.
 3) If no known type fits, propose a concise new type and set typeStatus="new".
-4) Set sourceChunkId exactly to: ${chunkId}
-5) Avoid duplicates within this chunk output (same name + type).
-6) Ignore boilerplate, disclaimer, and advertising content.
+4) Avoid duplicates within this chunk output (same name + type).
+5) Ignore boilerplate, disclaimer, and advertising content.
 
 Chunk text:
 """${chunkText}"""
