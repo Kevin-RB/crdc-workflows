@@ -11,9 +11,9 @@ type BaseElement = {
 };
 
 type TextProperties = {
-  font: string;
+  font?: string | null;
   "font size": number;
-  "text color": string;
+  "text color"?: string | null;
   content: string;
   "hidden text"?: boolean;
 };
@@ -117,9 +117,9 @@ const baseElementSchema = z.object({
 });
 
 const textPropertiesSchema = z.object({
-  font: z.string(),
+  font: z.string().nullable().optional(),
   "font size": z.number(),
-  "text color": z.string(),
+  "text color": z.string().nullable().optional(),
   content: z.string(),
   "hidden text": z.boolean().optional(),
 });
@@ -131,20 +131,20 @@ const tableRowSchema: z.ZodType<TableRow> = z.object({
 });
 
 const paragraphSchema: z.ZodType<Paragraph> = baseElementSchema
-  .merge(textPropertiesSchema)
+  .extend(textPropertiesSchema.shape)
   .extend({
     type: z.literal("paragraph"),
   });
 
 const headingSchema: z.ZodType<Heading> = baseElementSchema
-  .merge(textPropertiesSchema)
+  .extend(textPropertiesSchema.shape)
   .extend({
     type: z.literal("heading"),
     "heading level": z.number().int(),
   });
 
 const captionSchema: z.ZodType<Caption> = baseElementSchema
-  .merge(textPropertiesSchema)
+  .extend(textPropertiesSchema.shape)
   .extend({
     type: z.literal("caption"),
     "linked content id": z.number().int().optional(),
@@ -174,7 +174,7 @@ const textBlockSchema: z.ZodType<TextBlock> = baseElementSchema.extend({
 });
 
 const listItemSchema: z.ZodType<ListItem> = baseElementSchema
-  .merge(textPropertiesSchema)
+  .extend(textPropertiesSchema.shape)
   .extend({
     type: z.literal("list item"),
     kids: z.array(z.lazy(() => contentElementSchema)),

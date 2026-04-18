@@ -11,6 +11,7 @@ import { validateChunksStep } from "@/mastra/workflows/entity-extraction/steps/v
 import { documentChunksWorkflow } from "@/mastra/workflows/entity-extraction/subworkflows/document-chunks.workflow"
 import { dummyChunksWorkflow } from "@/mastra/workflows/entity-extraction/subworkflows/dummy-chunks.workflow"
 import { extractEntityAgentStep } from "@/mastra/workflows/entity-extraction/steps/extract-entity.step"
+import z from "zod"
 
 export const entityExtractionWorkflow = createWorkflow({
   id: "entity-extraction-workflow",
@@ -18,8 +19,7 @@ export const entityExtractionWorkflow = createWorkflow({
   options: {
     validateInputs: true,
     onError: async ({ error, state }) => {
-      console.error("Error in entity extraction workflow:", error)
-      console.log(state)
+      console.error("Error in entity extraction workflow:", error?.name)
     },
     onFinish: async ({ status, state, result, error }) => {
       if (status === "success") {
@@ -35,9 +35,6 @@ export const entityExtractionWorkflow = createWorkflow({
       }
 
       console.warn(`Entity extraction workflow finished with status '${status}'.`)
-      if (error) {
-        console.warn("Workflow finish error details:", error)
-      }
     },
   },
   inputSchema: chunkSourceModeSchema,

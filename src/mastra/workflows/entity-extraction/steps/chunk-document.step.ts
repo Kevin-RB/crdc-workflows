@@ -7,5 +7,5 @@ export const chunkDocumentStep = createStep({
   id: "chunk-document",
   inputSchema: openDataLoaderJsonSchema,
   outputSchema: chunkArraySchema,
-  execute: async ({ inputData }) => chunkBySection(inputData),
+  execute: async ({ inputData }) => await chunkBySection(inputData),
 })

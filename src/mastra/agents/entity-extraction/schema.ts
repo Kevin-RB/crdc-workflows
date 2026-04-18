@@ -16,9 +16,9 @@ export const candidateEntitySchema = z.object({
   aliases: uniqueStringArraySchema.describe(
     "Alternative names seen in the chunk for the same entity. Omit duplicates and near-duplicates.",
   ),
-  description: nonEmptyStringSchema.describe(
-    "Concise factual description grounded in the chunk text. Do not invent details not present in the chunk.",
-  ),
+  // description: nonEmptyStringSchema.describe(
+  //   "Concise factual description grounded in the chunk text. Do not invent details not present in the chunk.",
+  // ),
   confidence: z
     .number()
     .min(0)

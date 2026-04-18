@@ -63,41 +63,41 @@ export const extractEntityAgentStep = createStep({
       knownTypes,
     })
 
-    try {
-      const response = await extractionAgent.generate(
-        [{ role: "user", content: prompt }],
-        {
-          structuredOutput: {
-            schema: chunkExtractionOutputSchema,
-          },
+    const response = await extractionAgent.generate(
+      [{ role: "user", content: prompt }],
+      {
+        structuredOutput: {
+          schema: chunkExtractionOutputSchema,
+          errorStrategy: "warn"
         },
-      )
+      },
+    )
 
-      const parsed = chunkExtractionOutputSchema.safeParse(response.object)
+    console.log("Raw agent response:", response)
 
-      if (!parsed.success) {
-        throw new Error(z.prettifyError(parsed.error))
-      }
+    const parsed = chunkExtractionOutputSchema.safeParse(response.object)
 
-      const candidateEntities: CandidateEntity[] = parsed.data.map((entity) => ({
-        ...entity,
-        sourceChunkId: inputData.id,
-        type: normalizeValue(entity.type),
-        aliases: Array.from(new Set(entity.aliases.map(normalizeValue).filter(Boolean))),
-      }))
-
-      return persistEntities(candidateEntities)
-    } catch (error) {
+    if (!parsed.success) {
+      console.error(z.prettifyError(parsed.error))
       return suspend(
-        {
-          chunkId: inputData.id,
-          message: error instanceof Error ? error.message : String(error),
-          errorType: error instanceof Error ? error.name : "UnknownError",
-        },
-        {
-          resumeLabel: `chunk:${inputData.id}`,
-        },
-      )
+      {
+        chunkId: inputData.id,
+        message: z.prettifyError(parsed.error),
+      },
+      {
+        resumeLabel: `chunk:${inputData.id}`,
+      },
+    )
     }
+
+    const candidateEntities: CandidateEntity[] = parsed.data.map((entity) => ({
+      ...entity,
+      sourceChunkId: inputData.id,
+      type: normalizeValue(entity.type),
+      aliases: Array.from(new Set(entity.aliases.map(normalizeValue).filter(Boolean))),
+    }))
+
+    return persistEntities(candidateEntities)
+    
   },
 })
