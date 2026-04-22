@@ -1,8 +1,10 @@
 import z from "zod";
 
 export const chunkSchema = z.object({
-  id: z.string(),
-  content: z.string(),
+  documentId: z.string().trim().min(1, { message: "Required" }),
+  chapterId: z.string().trim().min(1, { message: "Required" }),
+  chunkId: z.string().trim().min(1, { message: "Required" }),
+  content: z.string().trim().min(1, { message: "Required" }),
   metadata: z.object({
     heading: z.string().nullable(),
     page: z.number().int().nullable(),

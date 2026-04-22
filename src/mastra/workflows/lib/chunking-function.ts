@@ -1,10 +1,17 @@
 import type { Chunk } from "@/interface/chunk"
 import type { OpenDataLoaderJson } from "@/interface/document"
+import { MDocument } from "@mastra/rag"
+import { randomUUID } from "node:crypto"
+
 
 const DEFAULT_WEAK_HEADING_MAX_LENGTH = 3
 const DEFAULT_MIN_CHUNK_SIZE_CHARS = 450
 const DEFAULT_MIN_CHUNK_ALPHA_WORDS = 10
 const DEFAULT_MIN_CHUNK_ALPHA_RATIO = 0.35
+const DEFAULT_MAX_CHUNK_SIZE_CHARS = 3500
+const DEFAULT_CHUNK_OVERLAP_CHARS = 300
+const RECURSIVE_CHUNK_SEPARATORS = ["\n\n", "\n", " ", ""] as const
+const ENTITY_EXTRACTION_DOCUMENT_TITLE = process.env.ENTITY_EXTRACTION_DOCUMENT_TITLE
 
 const parseEnvInt = (value: string | undefined, fallback: number): number => {
   if (!value) {
@@ -40,20 +47,14 @@ const MIN_CHUNK_ALPHA_RATIO = parseEnvFloat(
   process.env.ENTITY_EXTRACTION_MIN_CHUNK_ALPHA_RATIO,
   DEFAULT_MIN_CHUNK_ALPHA_RATIO,
 )
-
-const slugify = (value: string): string => {
-  const normalized = value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-
-  return normalized || "document"
-}
-
-const sectionId = (source: string, index: number): string => {
-  const padded = String(index + 1).padStart(3, "0")
-  return `${slugify(source)}-section-${padded}`
-}
+const MAX_CHUNK_SIZE_CHARS = parseEnvInt(
+  process.env.ENTITY_EXTRACTION_MAX_CHUNK_SIZE_CHARS,
+  DEFAULT_MAX_CHUNK_SIZE_CHARS,
+)
+const CHUNK_OVERLAP_CHARS = parseEnvInt(
+  process.env.ENTITY_EXTRACTION_CHUNK_OVERLAP_CHARS,
+  DEFAULT_CHUNK_OVERLAP_CHARS,
+)
 
 const isWeakHeading = (value: string): boolean => value.trim().length <= WEAK_HEADING_MAX_LENGTH
 
@@ -83,9 +84,38 @@ const hasEnoughInformation = (value: string): boolean => {
   return text.length >= MIN_CHUNK_SIZE_CHARS || alphaWords >= MIN_CHUNK_ALPHA_WORDS
 }
 
-export const chunkBySection = (doc: OpenDataLoaderJson): Chunk[] => {
+const splitOversizedContent = async (content: string): Promise<string[]> => {
+  if (content.length <= MAX_CHUNK_SIZE_CHARS) {
+    return [content]
+  }
+
+  const maxSize = Math.max(1, MAX_CHUNK_SIZE_CHARS)
+  const overlap = Math.min(Math.max(0, CHUNK_OVERLAP_CHARS), Math.max(0, maxSize - 1))
+
+  const doc = MDocument.fromText(content)
+  const subChunks = await doc.chunk({
+    strategy: "recursive",
+    maxSize,
+    overlap,
+    separators: [...RECURSIVE_CHUNK_SEPARATORS],
+  })
+
+  const normalizedSubChunks = subChunks
+    .map((chunk) => normalizeText(chunk.text))
+    .filter((chunkText) => chunkText.length > 0)
+
+  return normalizedSubChunks.length > 0 ? normalizedSubChunks : [content]
+}
+
+export const chunkBySection = async (doc: OpenDataLoaderJson): Promise<Chunk[]> => {
+  if (!ENTITY_EXTRACTION_DOCUMENT_TITLE) {
+    throw new Error("Environment variable 'ENTITY_EXTRACTION_DOCUMENT_TITLE' is not set")
+  }
+
   const chunks: Chunk[] = []
   const source = doc["file name"] ?? null
+
+  console.log(`Chunking document by section. Source: '${source}', Total elements: ${doc.kids.length}`)
 
   let currentHeading: string | null = null
   let currentContent: string[] = []
@@ -104,7 +134,7 @@ export const chunkBySection = (doc: OpenDataLoaderJson): Chunk[] => {
     currentContent.push(trimmed)
   }
 
-  const flush = (): void => {
+  const flush = async (): Promise<void> => {
     const content = normalizeText(currentContent.join("\n"))
     if (!hasEnoughInformation(content)) {
       currentContent = []
@@ -112,14 +142,20 @@ export const chunkBySection = (doc: OpenDataLoaderJson): Chunk[] => {
       return
     }
 
-    chunks.push({
-      id: sectionId(source ?? "document", chunks.length),
-      content,
-      metadata: {
-        heading: currentHeading,
-        page: currentStartPage,
-        source,
-      },
+    const sectionParts = await splitOversizedContent(content)
+
+    sectionParts.forEach((partContent) => {
+      chunks.push({
+        documentId: ENTITY_EXTRACTION_DOCUMENT_TITLE,
+        chapterId: doc["file name"],
+        chunkId: randomUUID(),
+        content: partContent,
+        metadata: {
+          heading: currentHeading,
+          page: currentStartPage,
+          source,
+        },
+      })
     })
 
     currentContent = []
@@ -134,7 +170,7 @@ export const chunkBySection = (doc: OpenDataLoaderJson): Chunk[] => {
       }
 
       if (!isWeakHeading(headingContent) && currentContent.join("\n").trim().length >= MIN_CHUNK_SIZE_CHARS) {
-        flush()
+        await flush()
       }
 
       if (!isWeakHeading(headingContent)) {
@@ -160,7 +196,7 @@ export const chunkBySection = (doc: OpenDataLoaderJson): Chunk[] => {
     }
   }
 
-  flush()
+  await flush()
 
   return chunks
 }
