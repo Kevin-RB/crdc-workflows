@@ -11,7 +11,6 @@ import { validateChunksStep } from "@/mastra/workflows/entity-extraction/steps/v
 import { documentChunksWorkflow } from "@/mastra/workflows/entity-extraction/subworkflows/document-chunks.workflow"
 import { dummyChunksWorkflow } from "@/mastra/workflows/entity-extraction/subworkflows/dummy-chunks.workflow"
 import { extractEntityAgentStep } from "@/mastra/workflows/entity-extraction/steps/extract-entity.step"
-import z from "zod"
 
 export const entityExtractionWorkflow = createWorkflow({
   id: "entity-extraction-workflow",

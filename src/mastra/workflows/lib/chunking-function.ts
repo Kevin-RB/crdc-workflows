@@ -1,6 +1,7 @@
 import type { Chunk } from "@/interface/chunk"
 import type { OpenDataLoaderJson } from "@/interface/document"
 import { MDocument } from "@mastra/rag"
+import { randomUUID } from "node:crypto"
 
 
 const DEFAULT_WEAK_HEADING_MAX_LENGTH = 3
@@ -10,6 +11,7 @@ const DEFAULT_MIN_CHUNK_ALPHA_RATIO = 0.35
 const DEFAULT_MAX_CHUNK_SIZE_CHARS = 3500
 const DEFAULT_CHUNK_OVERLAP_CHARS = 300
 const RECURSIVE_CHUNK_SEPARATORS = ["\n\n", "\n", " ", ""] as const
+const ENTITY_EXTRACTION_DOCUMENT_TITLE = process.env.ENTITY_EXTRACTION_DOCUMENT_TITLE
 
 const parseEnvInt = (value: string | undefined, fallback: number): number => {
   if (!value) {
@@ -53,20 +55,6 @@ const CHUNK_OVERLAP_CHARS = parseEnvInt(
   process.env.ENTITY_EXTRACTION_CHUNK_OVERLAP_CHARS,
   DEFAULT_CHUNK_OVERLAP_CHARS,
 )
-
-const slugify = (value: string): string => {
-  const normalized = value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-
-  return normalized || "document"
-}
-
-const sectionId = (source: string, index: number): string => {
-  const padded = String(index + 1).padStart(3, "0")
-  return `${slugify(source)}-section-${padded}`
-}
 
 const isWeakHeading = (value: string): boolean => value.trim().length <= WEAK_HEADING_MAX_LENGTH
 
@@ -120,6 +108,10 @@ const splitOversizedContent = async (content: string): Promise<string[]> => {
 }
 
 export const chunkBySection = async (doc: OpenDataLoaderJson): Promise<Chunk[]> => {
+  if (!ENTITY_EXTRACTION_DOCUMENT_TITLE) {
+    throw new Error("Environment variable 'ENTITY_EXTRACTION_DOCUMENT_TITLE' is not set")
+  }
+
   const chunks: Chunk[] = []
   const source = doc["file name"] ?? null
 
@@ -150,17 +142,13 @@ export const chunkBySection = async (doc: OpenDataLoaderJson): Promise<Chunk[]> 
       return
     }
 
-    const baseId = sectionId(source ?? "document", chunks.length)
     const sectionParts = await splitOversizedContent(content)
 
-    sectionParts.forEach((partContent, partIndex) => {
-      const partId =
-        sectionParts.length === 1
-          ? baseId
-          : `${baseId}-part-${String(partIndex + 1).padStart(3, "0")}`
-
+    sectionParts.forEach((partContent) => {
       chunks.push({
-        id: partId,
+        documentId: ENTITY_EXTRACTION_DOCUMENT_TITLE,
+        chapterId: doc["file name"],
+        chunkId: randomUUID(),
         content: partContent,
         metadata: {
           heading: currentHeading,

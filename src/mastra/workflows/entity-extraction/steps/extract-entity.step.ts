@@ -14,7 +14,11 @@ const extractEntityStateSchema = entityExtractionWorkflowStateSchema.pick({
 })
 
 const extractEntitySuspendSchema = z.object({
-  chunkId: z.string(),
+  chunkInfo: z.object({
+    documentId: z.string(),
+    chapterId: z.string(),
+    chunkId: z.string(),
+  }),
   message: z.string(),
   errorType: z.string().optional(),
 })
@@ -22,8 +26,6 @@ const extractEntitySuspendSchema = z.object({
 const extractEntityResumeSchema = z.object({
   action: z.literal("retry"),
 })
-
-const normalizeValue = (value: string): string => value.trim()
 
 export const extractEntityAgentStep = createStep({
   id: "extract-entity-agent",
@@ -34,14 +36,14 @@ export const extractEntityAgentStep = createStep({
   resumeSchema: extractEntityResumeSchema,
   description: "Step that uses an agent to extract candidate entities from a chunk of text.",
   retries: 1,
-  execute: async ({ inputData, state, setState, mastra, suspend, resumeData}) => {
+  execute: async ({ inputData, state, setState, mastra, suspend, resumeData }) => {
     const extractionAgent = mastra.getAgent("entityExtractionAgent")
 
     const knownTypes = state.knownTypes ?? []
     const rawCandidateEntities = state.rawCandidateEntities ?? []
 
     const persistEntities = async (entities: CandidateEntity[]): Promise<CandidateEntity[]> => {
-      const knownTypeSet = new Set(knownTypes.map(normalizeValue))
+      const knownTypeSet = new Set(knownTypes.map(value => value.trim()))
       const newTypes = entities
         .map((entity) => entity.type)
         .filter((type) => !knownTypeSet.has(type))
@@ -73,31 +75,37 @@ export const extractEntityAgentStep = createStep({
       },
     )
 
-    console.log("Raw agent response:", response)
-
     const parsed = chunkExtractionOutputSchema.safeParse(response.object)
 
     if (!parsed.success) {
       console.error(z.prettifyError(parsed.error))
       return suspend(
-      {
-        chunkId: inputData.id,
-        message: z.prettifyError(parsed.error),
-      },
-      {
-        resumeLabel: `chunk:${inputData.id}`,
-      },
-    )
+        {
+          chunkInfo: {
+            documentId: inputData.documentId,
+            chapterId: inputData.chapterId,
+            chunkId: inputData.chunkId,
+          },
+          message: z.prettifyError(parsed.error),
+        },
+        {
+          resumeLabel: `chunk:${inputData.chunkId}`,
+        },
+      )
     }
 
     const candidateEntities: CandidateEntity[] = parsed.data.map((entity) => ({
-      ...entity,
-      sourceChunkId: inputData.id,
-      type: normalizeValue(entity.type),
-      aliases: Array.from(new Set(entity.aliases.map(normalizeValue).filter(Boolean))),
+      chapterId: inputData.chapterId,
+      chunkId: inputData.chunkId,
+      documentId: inputData.documentId,
+      name: entity.name.trim(),
+      type: entity.type.trim(),
+      confidence: entity.confidence,
+      aliases: Array.from(new Set(
+        entity.aliases.map((alias) => alias.trim()
+        ).filter(Boolean))),
     }))
 
     return persistEntities(candidateEntities)
-    
   },
 })

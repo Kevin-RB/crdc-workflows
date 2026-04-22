@@ -21,3 +21,5 @@ export const entityExtractionWorkflowStateSchema = z.object({
 export const entityExtractionPersistedStateSchema = entityExtractionWorkflowStateSchema.extend({
   updatedAt: z.string().trim().min(1),
 })
+
+export type GlobalState = z.infer<typeof entityExtractionPersistedStateSchema>
