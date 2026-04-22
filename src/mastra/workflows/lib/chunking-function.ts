@@ -1,7 +1,7 @@
 import type { Chunk } from "@/interface/chunk"
 import type { OpenDataLoaderJson } from "@/interface/document"
 import { MDocument } from "@mastra/rag"
-import { randomUUID } from "node:crypto"
+import { createHash } from "node:crypto"
 
 
 const DEFAULT_WEAK_HEADING_MAX_LENGTH = 3
@@ -12,6 +12,8 @@ const DEFAULT_MAX_CHUNK_SIZE_CHARS = 3500
 const DEFAULT_CHUNK_OVERLAP_CHARS = 300
 const RECURSIVE_CHUNK_SEPARATORS = ["\n\n", "\n", " ", ""] as const
 const ENTITY_EXTRACTION_DOCUMENT_TITLE = process.env.ENTITY_EXTRACTION_DOCUMENT_TITLE
+const CHUNK_ID_HASH_LENGTH = 12
+const CHUNK_ID_PART_MAX_LENGTH = 24
 
 const parseEnvInt = (value: string | undefined, fallback: number): number => {
   if (!value) {
@@ -64,6 +66,33 @@ const normalizeText = (value: string): string => {
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim()
+}
+
+const slugify = (value: string, fallback: string): string => {
+  const slug = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, CHUNK_ID_PART_MAX_LENGTH)
+
+  return slug.length > 0 ? slug : fallback
+}
+
+const buildChunkId = ({
+  source,
+  page,
+  content,
+}: {
+  source: string | null
+  page: number | null
+  content: string
+}): string => {
+  const sourcePart = slugify(source ?? "", "unknown-source")
+  const pagePart = page === null ? "na" : String(page)
+  const fingerprint = [source ?? "", pagePart, content].join("::")
+  const hash = createHash("sha256").update(fingerprint).digest("hex").slice(0, CHUNK_ID_HASH_LENGTH)
+
+  return `${sourcePart}_${pagePart}_${hash}`
 }
 
 const hasEnoughInformation = (value: string): boolean => {
@@ -148,7 +177,11 @@ export const chunkBySection = async (doc: OpenDataLoaderJson): Promise<Chunk[]> 
       chunks.push({
         documentId: ENTITY_EXTRACTION_DOCUMENT_TITLE,
         chapterId: doc["file name"],
-        chunkId: randomUUID(),
+        chunkId: buildChunkId({
+          source,
+          page: currentStartPage,
+          content: partContent,
+        }),
         content: partContent,
         metadata: {
           heading: currentHeading,

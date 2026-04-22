@@ -1,4 +1,3 @@
-import { chunkSchema } from "@/interface/chunk"
 import z from "zod"
 
 const nonEmptyStringSchema = z.string().trim().min(1, { message: "Required" })
@@ -7,11 +6,13 @@ const uniqueStringArraySchema = z
   .array(nonEmptyStringSchema)
   .transform((values) => Array.from(new Set(values.map((value) => value.trim()))))
 
-export const candidateEntitySchema = chunkSchema.pick({
-  chapterId: true,
-  chunkId: true,
-  documentId: true,
-}).extend({
+const nonEmptyUniqueStringArraySchema = z
+  .array(nonEmptyStringSchema)
+  .min(1)
+  .transform((values) => Array.from(new Set(values.map((value) => value.trim()))))
+
+export const candidateEntitySchema = z.object({
+  chunkIds: nonEmptyUniqueStringArraySchema,
   name: nonEmptyStringSchema.describe(
     "Canonical entity name from the chunk. Use the shortest unambiguous label, e.g. 'Cotton plant'.",
   ),
@@ -34,7 +35,6 @@ export const candidateEntityExtractionOutputSchema = candidateEntitySchema.pick(
   aliases: true,
   confidence: true
 })
-
 
 export const chunkExtractionOutputSchema = z.array(candidateEntityExtractionOutputSchema).describe(
   "List of candidate entities extracted from the chunk. Return an empty array when none are found.",
