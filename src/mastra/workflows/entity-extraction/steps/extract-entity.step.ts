@@ -8,6 +8,186 @@ import { entityExtractionWorkflowStateSchema } from "@/mastra/workflows/entity-e
 import { createStep } from "@mastra/core/workflows"
 import z from "zod"
 
+const DEFAULT_ENTITY_MATCH_THRESHOLD = 0.88
+
+const parseThreshold = (value: string | undefined, fallback: number): number => {
+  if (!value) {
+    return fallback
+  }
+
+  const parsed = Number.parseFloat(value)
+  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 1 ? parsed : fallback
+}
+
+const ENTITY_MATCH_THRESHOLD = parseThreshold(
+  process.env.ENTITY_EXTRACTION_ENTITY_MATCH_THRESHOLD,
+  DEFAULT_ENTITY_MATCH_THRESHOLD,
+)
+const UNKNOWN_TYPE_FUZZY_MIN = Math.max(ENTITY_MATCH_THRESHOLD, 0.94)
+
+const normalizeEntityText = (value: string): string => {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+}
+
+const uniqueNonEmpty = (values: string[]): string[] => {
+  return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)))
+}
+
+const levenshteinDistance = (a: string, b: string): number => {
+  if (a === b) {
+    return 0
+  }
+
+  if (a.length === 0) {
+    return b.length
+  }
+
+  if (b.length === 0) {
+    return a.length
+  }
+
+  const rows = a.length + 1
+  const cols = b.length + 1
+  const matrix: number[][] = Array.from({ length: rows }, () => Array.from({ length: cols }, () => 0))
+
+  for (let i = 0; i < rows; i += 1) {
+    matrix[i][0] = i
+  }
+
+  for (let j = 0; j < cols; j += 1) {
+    matrix[0][j] = j
+  }
+
+  for (let i = 1; i < rows; i += 1) {
+    for (let j = 1; j < cols; j += 1) {
+      const substitutionCost = a[i - 1] === b[j - 1] ? 0 : 1
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + substitutionCost,
+      )
+    }
+  }
+
+  return matrix[a.length][b.length]
+}
+
+const levenshteinRatio = (a: string, b: string): number => {
+  if (!a && !b) {
+    return 1
+  }
+
+  const maxLength = Math.max(a.length, b.length)
+  if (maxLength === 0) {
+    return 1
+  }
+
+  const distance = levenshteinDistance(a, b)
+  return 1 - distance / maxLength
+}
+
+const tokenJaccard = (a: string, b: string): number => {
+  const aTokens = new Set(a.split(" ").map((token) => token.trim()).filter(Boolean))
+  const bTokens = new Set(b.split(" ").map((token) => token.trim()).filter(Boolean))
+
+  if (aTokens.size === 0 && bTokens.size === 0) {
+    return 1
+  }
+
+  const intersectionCount = Array.from(aTokens).filter((token) => bTokens.has(token)).length
+  const unionCount = new Set([...Array.from(aTokens), ...Array.from(bTokens)]).size
+  return unionCount === 0 ? 0 : intersectionCount / unionCount
+}
+
+const entitySimilarity = (a: string, b: string): number => {
+  const left = normalizeEntityText(a)
+  const right = normalizeEntityText(b)
+
+  if (!left || !right) {
+    return 0
+  }
+
+  const editScore = levenshteinRatio(left, right)
+  const tokenScore = tokenJaccard(left, right)
+
+  return editScore * 0.6 + tokenScore * 0.4
+}
+
+const isSameType = (left: string, right: string): boolean => {
+  return normalizeEntityText(left) === normalizeEntityText(right)
+}
+
+const isUnknownType = (value: string): boolean => {
+  return normalizeEntityText(value) === "unknown"
+}
+
+const canBridgeUnknownType = (left: string, right: string): boolean => {
+  return (isUnknownType(left) && !isUnknownType(right)) || (!isUnknownType(left) && isUnknownType(right))
+}
+
+const resolveMergedType = (existingType: string, incomingType: string): string => {
+  if (isUnknownType(existingType) && !isUnknownType(incomingType)) {
+    return incomingType
+  }
+
+  return existingType
+}
+
+const findEntityMatchIndex = (
+  existingEntities: CandidateEntity[],
+  incomingEntity: CandidateEntity,
+): number => {
+  const incomingType = incomingEntity.type
+  const incomingName = normalizeEntityText(incomingEntity.name)
+
+  const exactMatchIndex = existingEntities.findIndex((existingEntity) => {
+    const sameType = isSameType(existingEntity.type, incomingType)
+    const unknownBridge = canBridgeUnknownType(existingEntity.type, incomingType)
+    if (!sameType && !unknownBridge) {
+      return false
+    }
+
+    const existingValues = [existingEntity.name, ...existingEntity.aliases].map(normalizeEntityText)
+    return existingValues.includes(incomingName)
+  })
+
+  if (exactMatchIndex >= 0) {
+    return exactMatchIndex
+  }
+
+  let bestIndex = -1
+  let bestScore = 0
+
+  const incomingValues = [incomingEntity.name, ...incomingEntity.aliases]
+
+  existingEntities.forEach((existingEntity, index) => {
+    const sameType = isSameType(existingEntity.type, incomingType)
+    const unknownBridge = canBridgeUnknownType(existingEntity.type, incomingType)
+    if (!sameType && !unknownBridge) {
+      return
+    }
+
+    const existingValues = [existingEntity.name, ...existingEntity.aliases]
+
+    for (const incomingValue of incomingValues) {
+      for (const existingValue of existingValues) {
+        const score = entitySimilarity(incomingValue, existingValue)
+        const threshold = sameType ? ENTITY_MATCH_THRESHOLD : UNKNOWN_TYPE_FUZZY_MIN
+        if (score >= threshold && score > bestScore) {
+          bestScore = score
+          bestIndex = index
+        }
+      }
+    }
+  })
+
+  return bestIndex
+}
+
 const extractEntityStateSchema = entityExtractionWorkflowStateSchema.pick({
   knownTypes: true,
   rawCandidateEntities: true,
@@ -43,14 +223,38 @@ export const extractEntityAgentStep = createStep({
     const rawCandidateEntities = state.rawCandidateEntities ?? []
 
     const persistEntities = async (entities: CandidateEntity[]): Promise<CandidateEntity[]> => {
-      const knownTypeSet = new Set(knownTypes.map(value => value.trim()))
+      const knownTypeSet = new Set(knownTypes.map((value) => normalizeEntityText(value)))
       const newTypes = entities
         .map((entity) => entity.type)
-        .filter((type) => !knownTypeSet.has(type))
+        .filter((type) => !knownTypeSet.has(normalizeEntityText(type)))
+
+      const mergedEntities = rawCandidateEntities.map((entity) => ({
+        ...entity,
+        chunkIds: uniqueNonEmpty(entity.chunkIds),
+        aliases: uniqueNonEmpty(entity.aliases),
+      }))
+
+      for (const entity of entities) {
+        const matchIndex = findEntityMatchIndex(mergedEntities, entity)
+
+        if (matchIndex < 0) {
+          mergedEntities.push(entity)
+          continue
+        }
+
+        const existingEntity = mergedEntities[matchIndex]
+        mergedEntities[matchIndex] = {
+          ...existingEntity,
+          type: resolveMergedType(existingEntity.type, entity.type),
+          aliases: uniqueNonEmpty([...existingEntity.aliases, entity.name, ...entity.aliases]),
+          chunkIds: uniqueNonEmpty([...existingEntity.chunkIds, ...entity.chunkIds]),
+          confidence: Math.max(existingEntity.confidence, entity.confidence),
+        }
+      }
 
       await setState({
         knownTypes: Array.from(new Set([...knownTypes, ...newTypes])),
-        rawCandidateEntities: [...rawCandidateEntities, ...entities],
+        rawCandidateEntities: mergedEntities,
       })
 
       return entities
@@ -95,9 +299,7 @@ export const extractEntityAgentStep = createStep({
     }
 
     const candidateEntities: CandidateEntity[] = parsed.data.map((entity) => ({
-      chapterId: inputData.chapterId,
-      chunkId: inputData.chunkId,
-      documentId: inputData.documentId,
+      chunkIds: [inputData.chunkId],
       name: entity.name.trim(),
       type: entity.type.trim(),
       confidence: entity.confidence,
