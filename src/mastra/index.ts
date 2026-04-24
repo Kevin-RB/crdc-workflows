@@ -11,10 +11,12 @@ import { toolCallAppropriatenessScorer, completenessScorer, translationScorer } 
 import { entityExtractionWorkflow } from '@/mastra/workflows/entity-extraction-workflow';
 import { entityExtractionAgent } from '@/mastra/agents/entity-extraction/entity-extraction-agent';
 import { chattyAgent } from '@/mastra/agents/chat-agent/chat-agent';
+import { entityRelationExtractionWorkflow } from '@/mastra/workflows/entity-relation-extraction-workflow';
+import { rockyAgent } from '@/mastra/agents/rocky/rocky-agent';
 
 export const mastra = new Mastra({
-  workflows: { weatherWorkflow, entityExtractionWorkflow },
-  agents: { weatherAgent, entityExtractionAgent, chattyAgent },
+  workflows: { weatherWorkflow, entityExtractionWorkflow, entityRelationExtractionWorkflow },
+  agents: { weatherAgent, entityExtractionAgent, chattyAgent, rockyAgent },
   scorers: { toolCallAppropriatenessScorer, completenessScorer, translationScorer },
   storage: new MastraCompositeStore({
     id: 'composite-storage',
