@@ -13,9 +13,10 @@ import { entityExtractionAgent } from '@/mastra/agents/entity-extraction/entity-
 import { chattyAgent } from '@/mastra/agents/chat-agent/chat-agent';
 import { entityRelationExtractionWorkflow } from '@/mastra/workflows/entity-relation-extraction-workflow';
 import { rockyAgent } from '@/mastra/agents/rocky/rocky-agent';
+import { documentChunksWorkflow } from '@/mastra/workflows/document-chunks.workflow';
 
 export const mastra = new Mastra({
-  workflows: { weatherWorkflow, entityExtractionWorkflow, entityRelationExtractionWorkflow },
+  workflows: { weatherWorkflow, entityExtractionWorkflow, entityRelationExtractionWorkflow, documentChunksWorkflow },
   agents: { weatherAgent, entityExtractionAgent, chattyAgent, rockyAgent },
   scorers: { toolCallAppropriatenessScorer, completenessScorer, translationScorer },
   storage: new MastraCompositeStore({

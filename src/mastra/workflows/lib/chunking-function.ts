@@ -136,12 +136,10 @@ const splitOversizedContent = async (content: string): Promise<string[]> => {
   return normalizedSubChunks.length > 0 ? normalizedSubChunks : [content]
 }
 
-export const chunkBySection = async (doc: OpenDataLoaderJson): Promise<Chunk[]> => {
-  if (!ENTITY_EXTRACTION_DOCUMENT_TITLE) {
-    throw new Error("Environment variable 'ENTITY_EXTRACTION_DOCUMENT_TITLE' is not set")
-  }
+type IdlessChunk = Omit<Chunk, "documentId">
 
-  const chunks: Chunk[] = []
+export const chunkBySection = async (doc: OpenDataLoaderJson): Promise<IdlessChunk[]> => {
+  const chunks: IdlessChunk[] = []
   const source = doc["file name"] ?? null
 
   console.log(`Chunking document by section. Source: '${source}', Total elements: ${doc.kids.length}`)
@@ -175,7 +173,6 @@ export const chunkBySection = async (doc: OpenDataLoaderJson): Promise<Chunk[]> 
 
     sectionParts.forEach((partContent) => {
       chunks.push({
-        documentId: ENTITY_EXTRACTION_DOCUMENT_TITLE,
         chapterId: doc["file name"],
         chunkId: buildChunkId({
           source,

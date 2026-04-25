@@ -7,7 +7,10 @@ import { chunkSourceModeSchema, entityExtractionWorkflowStateSchema } from "@/ma
 import { createStep } from "@mastra/core/workflows"
 import { ZodError, z } from "zod"
 
-const hydrateKnownTypesStateSchema = entityExtractionWorkflowStateSchema.pick({ knownTypes: true })
+const hydrateKnownTypesStateSchema = entityExtractionWorkflowStateSchema.pick({
+  knownTypes: true,
+  rawCandidateEntities: true,
+})
 
 const hydrateKnownTypesSuspendSchema = z.object({
   reason: z.enum(["read_error", "parse_error", "schema_mismatch"]),
@@ -26,7 +29,7 @@ export const hydrateKnownTypesFromFileStep = createStep({
   stateSchema: hydrateKnownTypesStateSchema,
   suspendSchema: hydrateKnownTypesSuspendSchema,
   resumeSchema: hydrateKnownTypesResumeSchema,
-  description: "Loads global knownTypes from persisted workflow state.",
+  description: "Loads global knownTypes and rawCandidateEntities from persisted workflow state.",
   execute: async ({ inputData, resumeData, setState, suspend, suspendData }) => {
     const suspendReason = suspendData?.reason
     const suspendMessage = suspendData?.message
@@ -37,7 +40,7 @@ export const hydrateKnownTypesFromFileStep = createStep({
 
     if (resumeData?.action === "continue_empty") {
       console.warn(`Continuing workflow with empty knownTypes after persisted-state error: ${suspendReason}`)
-      await setState({ knownTypes: [] })
+      await setState({ knownTypes: [], rawCandidateEntities: [] })
       return inputData
     }
 
@@ -92,7 +95,10 @@ export const hydrateKnownTypesFromFileStep = createStep({
 
     try {
       const parsed = parsePersistedEntityExtractionState(json)
-      await setState({ knownTypes: parsed.knownTypes })
+      await setState({
+        knownTypes: parsed.knownTypes,
+        rawCandidateEntities: parsed.rawCandidateEntities,
+      })
       return inputData
     } catch (error) {
       if (error instanceof ZodError) {
