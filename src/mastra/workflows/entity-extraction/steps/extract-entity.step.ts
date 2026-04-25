@@ -33,8 +33,143 @@ const normalizeEntityText = (value: string): string => {
     .replace(/\s+/g, " ")
 }
 
+const normalizeAliasKey = (value: string): string => normalizeEntityText(value)
+
+const isLikelyUrlOrDomain = (value: string): boolean => {
+  const trimmed = value.trim().toLowerCase()
+  if (!trimmed) {
+    return false
+  }
+
+  if (trimmed.includes("@")) {
+    return true
+  }
+
+  if (/^https?:\/\//.test(trimmed) || /^www\./.test(trimmed)) {
+    return true
+  }
+
+  return /^(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/.*)?$/.test(trimmed)
+}
+
 const uniqueNonEmpty = (values: string[]): string[] => {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)))
+}
+
+const sanitizeAliases = (aliases: string[], canonicalName: string): string[] => {
+  const canonicalKey = normalizeAliasKey(canonicalName)
+  const aliasByKey = new Map<string, string>()
+
+  for (const rawAlias of aliases) {
+    const alias = rawAlias.trim()
+    if (!alias || isLikelyUrlOrDomain(alias)) {
+      continue
+    }
+
+    const key = normalizeAliasKey(alias)
+    if (!key || key === canonicalKey || aliasByKey.has(key)) {
+      continue
+    }
+
+    aliasByKey.set(key, alias)
+  }
+
+  return Array.from(aliasByKey.values())
+}
+
+const canonicalNamePriority = (value: string): number => {
+  const trimmed = value.trim()
+  if (!trimmed || isLikelyUrlOrDomain(trimmed)) {
+    return -1
+  }
+
+  const hasWhitespace = /\s/.test(trimmed)
+  const hasDigits = /\d/.test(trimmed)
+  const upperCount = (trimmed.match(/[A-Z]/g) ?? []).length
+  const lowerCount = (trimmed.match(/[a-z]/g) ?? []).length
+  const tokenCount = normalizeEntityText(trimmed).split(" ").filter(Boolean).length
+
+  if (hasWhitespace && lowerCount > 0) {
+    return 5
+  }
+
+  if (tokenCount > 1) {
+    return 4
+  }
+
+  if (lowerCount > 0 && !hasDigits) {
+    return 3
+  }
+
+  if (lowerCount > 0 && hasDigits) {
+    return 2
+  }
+
+  if (upperCount > 0 && hasDigits) {
+    return 1
+  }
+
+  return 0
+}
+
+const pickCanonicalName = (values: string[], fallback: string): string => {
+  const cleaned = uniqueNonEmpty(values)
+  const dedupedByKey = new Map<string, string>()
+
+  for (const value of cleaned) {
+    if (isLikelyUrlOrDomain(value)) {
+      continue
+    }
+
+    const key = normalizeAliasKey(value)
+    if (!key) {
+      continue
+    }
+
+    if (!dedupedByKey.has(key)) {
+      dedupedByKey.set(key, value)
+    }
+  }
+
+  const candidates = Array.from(dedupedByKey.values())
+  if (candidates.length === 0) {
+    return fallback.trim() || fallback
+  }
+
+  let best = candidates[0]
+  let bestScore = canonicalNamePriority(best)
+
+  for (const candidate of candidates.slice(1)) {
+    const score = canonicalNamePriority(candidate)
+    if (score > bestScore) {
+      best = candidate
+      bestScore = score
+      continue
+    }
+
+    if (score === bestScore) {
+      const bestLength = normalizeEntityText(best).length
+      const candidateLength = normalizeEntityText(candidate).length
+      if (candidateLength > bestLength) {
+        best = candidate
+        bestScore = score
+      }
+    }
+  }
+
+  return best
+}
+
+const sanitizeEntity = (entity: CandidateEntity): CandidateEntity => {
+  const rawName = entity.name.trim()
+  const canonicalName = pickCanonicalName([rawName, ...entity.aliases], rawName)
+
+  return {
+    ...entity,
+    name: canonicalName,
+    chunkIds: uniqueNonEmpty(entity.chunkIds),
+    aliases: sanitizeAliases(entity.aliases, canonicalName),
+  }
 }
 
 const levenshteinDistance = (a: string, b: string): number => {
@@ -142,7 +277,11 @@ const findEntityMatchIndex = (
   incomingEntity: CandidateEntity,
 ): number => {
   const incomingType = incomingEntity.type
-  const incomingName = normalizeEntityText(incomingEntity.name)
+  const incomingValueSet = new Set(
+    [incomingEntity.name, ...incomingEntity.aliases]
+      .map(normalizeAliasKey)
+      .filter(Boolean),
+  )
 
   const exactMatchIndex = existingEntities.findIndex((existingEntity) => {
     const sameType = isSameType(existingEntity.type, incomingType)
@@ -151,8 +290,8 @@ const findEntityMatchIndex = (
       return false
     }
 
-    const existingValues = [existingEntity.name, ...existingEntity.aliases].map(normalizeEntityText)
-    return existingValues.includes(incomingName)
+    const existingValues = [existingEntity.name, ...existingEntity.aliases].map(normalizeAliasKey)
+    return existingValues.some((value) => incomingValueSet.has(value))
   })
 
   if (exactMatchIndex >= 0) {
@@ -228,27 +367,43 @@ export const extractEntityAgentStep = createStep({
         .map((entity) => entity.type)
         .filter((type) => !knownTypeSet.has(normalizeEntityText(type)))
 
-      const mergedEntities = rawCandidateEntities.map((entity) => ({
-        ...entity,
-        chunkIds: uniqueNonEmpty(entity.chunkIds),
-        aliases: uniqueNonEmpty(entity.aliases),
-      }))
+      const mergedEntities = rawCandidateEntities.map(sanitizeEntity)
 
       for (const entity of entities) {
-        const matchIndex = findEntityMatchIndex(mergedEntities, entity)
+        const sanitizedIncomingEntity = sanitizeEntity(entity)
+        const matchIndex = findEntityMatchIndex(mergedEntities, sanitizedIncomingEntity)
 
         if (matchIndex < 0) {
-          mergedEntities.push(entity)
+          mergedEntities.push(sanitizedIncomingEntity)
           continue
         }
 
         const existingEntity = mergedEntities[matchIndex]
+        const canonicalName = pickCanonicalName(
+          [
+            existingEntity.name,
+            sanitizedIncomingEntity.name,
+            ...existingEntity.aliases,
+            ...sanitizedIncomingEntity.aliases,
+          ],
+          existingEntity.name,
+        )
+
         mergedEntities[matchIndex] = {
           ...existingEntity,
+          name: canonicalName,
           type: resolveMergedType(existingEntity.type, entity.type),
-          aliases: uniqueNonEmpty([...existingEntity.aliases, entity.name, ...entity.aliases]),
-          chunkIds: uniqueNonEmpty([...existingEntity.chunkIds, ...entity.chunkIds]),
-          confidence: Math.max(existingEntity.confidence, entity.confidence),
+          aliases: sanitizeAliases(
+            [
+              existingEntity.name,
+              sanitizedIncomingEntity.name,
+              ...existingEntity.aliases,
+              ...sanitizedIncomingEntity.aliases,
+            ],
+            canonicalName,
+          ),
+          chunkIds: uniqueNonEmpty([...existingEntity.chunkIds, ...sanitizedIncomingEntity.chunkIds]),
+          confidence: Math.max(existingEntity.confidence, sanitizedIncomingEntity.confidence),
         }
       }
 
@@ -298,15 +453,15 @@ export const extractEntityAgentStep = createStep({
       )
     }
 
-    const candidateEntities: CandidateEntity[] = parsed.data.map((entity) => ({
-      chunkIds: [inputData.chunkId],
-      name: entity.name.trim(),
-      type: entity.type.trim(),
-      confidence: entity.confidence,
-      aliases: Array.from(new Set(
-        entity.aliases.map((alias) => alias.trim()
-        ).filter(Boolean))),
-    }))
+    const candidateEntities: CandidateEntity[] = parsed.data.map((entity) =>
+      sanitizeEntity({
+        chunkIds: [inputData.chunkId],
+        name: entity.name.trim(),
+        type: entity.type.trim(),
+        confidence: entity.confidence,
+        aliases: entity.aliases.map((alias) => alias.trim()).filter(Boolean),
+      }),
+    )
 
     return persistEntities(candidateEntities)
   },

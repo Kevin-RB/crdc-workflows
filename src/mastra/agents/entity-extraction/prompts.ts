@@ -62,6 +62,10 @@ DEDUPLICATION AND CANONICALIZATION RULES
 - Treat singular and plural variants as the same entity when they refer to the same concept
 - If a full name and acronym refer to the same entity, output one canonical entity only
 - Do not return the same entity under multiple near-identical names
+- Aliases must not repeat the canonical entity name (including case-only or punctuation-only differences)
+- Aliases must not contain duplicate values that differ only by casing or punctuation
+- Do not include URLs, domains, website addresses, or email-like strings as aliases
+- Prefer a descriptive full phrase as canonical name; keep abbreviations/acronyms in aliases
 
 QUALITY CHECKS BEFORE RETURNING
 - Every entity must be explicitly supported by the chunk text
@@ -126,6 +130,9 @@ Apply these rules for this chunk:
 7) When both a full name and acronym appear for the same entity, use the full canonical name as the entity name and place the acronym in aliases.
 8) Do not extract boilerplate, legal text, contact details, advertising, incidental mentions, standalone numbers, units, percentages, thresholds, or dimensions.
 9) If no valid entities exist, return an empty candidateEntities array.
+10) Aliases must be unique after case-insensitive normalization.
+11) Do not include aliases that repeat the entity name after case/punctuation normalization.
+12) Do not include URLs, domains, website addresses, or email-like strings as aliases.
 
 Reject a candidate if it is:
 - only a number, unit, percentage, threshold, rate, or dimension
