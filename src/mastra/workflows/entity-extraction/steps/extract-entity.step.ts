@@ -4,6 +4,7 @@ import {
   chunkExtractionOutputSchema,
   type CandidateEntity,
 } from "@/mastra/agents/entity-extraction/schema"
+import { writePersistedEntityExtractionState } from "@/mastra/workflows/entity-extraction/helpers/persisted-state"
 import { entityExtractionWorkflowStateSchema } from "@/mastra/workflows/entity-extraction/schemas"
 import { createStep } from "@mastra/core/workflows"
 import z from "zod"
@@ -330,6 +331,7 @@ const findEntityMatchIndex = (
 const extractEntityStateSchema = entityExtractionWorkflowStateSchema.pick({
   knownTypes: true,
   rawCandidateEntities: true,
+  processedChunkIds: true,
 })
 
 const extractEntitySuspendSchema = z.object({
@@ -360,6 +362,7 @@ export const extractEntityAgentStep = createStep({
 
     const knownTypes = state.knownTypes ?? []
     const rawCandidateEntities = state.rawCandidateEntities ?? []
+    const processedChunkIds = state.processedChunkIds ?? []
 
     const persistEntities = async (entities: CandidateEntity[]): Promise<CandidateEntity[]> => {
       const knownTypeSet = new Set(knownTypes.map((value) => normalizeEntityText(value)))
@@ -407,10 +410,15 @@ export const extractEntityAgentStep = createStep({
         }
       }
 
-      await setState({
+      const nextState = {
         knownTypes: Array.from(new Set([...knownTypes, ...newTypes])),
         rawCandidateEntities: mergedEntities,
-      })
+        processedChunkIds: Array.from(new Set([...processedChunkIds, inputData.chunkId])),
+      }
+
+      await setState(nextState)
+
+      await writePersistedEntityExtractionState(nextState)
 
       return entities
     }

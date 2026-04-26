@@ -9,6 +9,7 @@ export const documentChunksWorkflow = createWorkflow({
   id: "chunk-document-workflow",
   inputSchema: z.object({}),
   outputSchema: chunkArraySchema,
+  description: "A workflow that reads documents from folders, chunks them, and writes the chunks to disk.",
 })
   .then(readDocumentFoldersStep)
   .foreach(chunkDocumentFolderStep)

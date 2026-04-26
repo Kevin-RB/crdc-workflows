@@ -1,13 +1,15 @@
 import {
-  ENTITY_EXTRACTION_STATE_RELATIVE_FILE_PATH,
-} from "@/mastra/workflows/entity-extraction/constants"
-import {
   entityExtractionPersistedStateSchema,
+  EntityExtractionWorkflowState,
   entityExtractionWorkflowStateSchema,
 } from "@/mastra/workflows/entity-extraction/schemas"
-import { resolveWorkspaceRoot } from "@/mastra/workflows/lib/workspace-functions"
-import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { mkdir, writeFile } from "node:fs/promises"
 import path from "node:path"
+
+const ENTITY_EXTRACTION_STATE_PATH = path.resolve(
+  process.cwd(),
+  "../../docs/entity-extraction/global-state.json",
+)
 
 export const normalizeKnownTypes = (values: string[]): string[] =>
   Array.from(
@@ -18,30 +20,7 @@ export const normalizeKnownTypes = (values: string[]): string[] =>
     ),
   )
 
-export const getPersistedEntityExtractionStatePath = async (): Promise<string> => {
-  const workspaceRoot = await resolveWorkspaceRoot()
-  const statePath = process.env[ENTITY_EXTRACTION_STATE_RELATIVE_FILE_PATH]
-  if (!statePath) {
-    throw new Error(`Environment variable '${ENTITY_EXTRACTION_STATE_RELATIVE_FILE_PATH}' is not set`)
-  }
-  return path.resolve(workspaceRoot, statePath)
-}
-
-export const readPersistedEntityExtractionStateRaw = async (): Promise<unknown> => {
-  const persistedPath = await getPersistedEntityExtractionStatePath()
-  const raw = await readFile(persistedPath, "utf-8")
-  return raw
-}
-
-export const parsePersistedEntityExtractionState = (raw: unknown) => {
-  const parsed = entityExtractionPersistedStateSchema.parse(raw)
-  return {
-    ...parsed,
-    knownTypes: normalizeKnownTypes(parsed.knownTypes),
-  }
-}
-
-export const buildPersistedEntityExtractionState = (state: unknown) => {
+export const buildPersistedEntityExtractionState = (state: EntityExtractionWorkflowState) => {
   const parsedState = entityExtractionWorkflowStateSchema.parse(state)
 
   return entityExtractionPersistedStateSchema.parse({
@@ -51,10 +30,9 @@ export const buildPersistedEntityExtractionState = (state: unknown) => {
   })
 }
 
-export const writePersistedEntityExtractionState = async (state: unknown): Promise<void> => {
-  const persistedPath = await getPersistedEntityExtractionStatePath()
+export const writePersistedEntityExtractionState = async (state: EntityExtractionWorkflowState): Promise<void> => {
   const persistedState = buildPersistedEntityExtractionState(state)
 
-  await mkdir(path.dirname(persistedPath), { recursive: true })
-  await writeFile(persistedPath, JSON.stringify(persistedState, null, 2), "utf-8")
+  await mkdir(path.dirname(ENTITY_EXTRACTION_STATE_PATH), { recursive: true })
+  await writeFile(ENTITY_EXTRACTION_STATE_PATH, JSON.stringify(persistedState, null, 2), "utf-8")
 }

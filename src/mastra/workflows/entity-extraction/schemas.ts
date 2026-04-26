@@ -32,10 +32,13 @@ export const chunkSourceModeSchema = z.object({
 export const entityExtractionWorkflowStateSchema = z.object({
   knownTypes: z.array(z.string().trim().min(1)).default([]),
   rawCandidateEntities: z.array(candidateEntitySchema).default([]),
+  processedChunkIds: z.array(z.string().trim().min(1)).default([]),
 })
 
 export const entityExtractionPersistedStateSchema = entityExtractionWorkflowStateSchema.extend({
   updatedAt: z.string().trim().min(1),
 })
+
+export type EntityExtractionWorkflowState = z.infer<typeof entityExtractionWorkflowStateSchema>
 
 export type GlobalState = z.infer<typeof entityExtractionPersistedStateSchema>
