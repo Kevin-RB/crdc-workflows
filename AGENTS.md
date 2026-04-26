@@ -13,9 +13,11 @@ This is a **Mastra** project written in TypeScript. Mastra is a framework for bu
 ## Commands
 
 ```bash
-npm run dev # Start Mastra Studio at localhost:4111 (long-running, use a separate terminal)
-npm run build # Build a production-ready server
+pnpm run dev    # Start Mastra Studio at localhost:4111 (long-running, use separate terminal)
+pnpm run start  # Run the production server
 ```
+
+**Note:** This project uses `pnpm` (not npm). The `test` script is not configured.
 
 ## Project Structure
 
@@ -47,7 +49,6 @@ Top-level files define how your Mastra project is configured, built, and connect
 - Load the `mastra` skill before any Mastra-related work
 - Register new agents, tools, workflows, and scorers in `src/mastra/index.ts`
 - Use schemas for tool inputs and outputs
-- Run `npm run build` to verify changes compile
 
 ### Never do
 
