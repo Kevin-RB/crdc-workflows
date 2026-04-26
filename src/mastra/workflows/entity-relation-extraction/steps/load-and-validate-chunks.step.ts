@@ -1,30 +1,24 @@
-import { readWorkspaceRelativeJson } from "@/mastra/workflows/entity-extraction/helpers/read-workspace-relative-json"
-import {
-  entityRelationExtractionWorkflowInputSchema,
-  entityRelationExtractionChunkArraySchema,
-} from "@/mastra/workflows/entity-relation-extraction/schemas"
 import { createStep } from "@mastra/core/workflows"
+import { readdir, readFile } from "node:fs/promises"
+import path from "node:path"
 import z from "zod"
+
+const TARGET_DOCUMENT_DIR = "../../docs/chunked"
 
 export const loadAndValidateChunksStep = createStep({
   id: "load-and-validate-chunks",
-  inputSchema: entityRelationExtractionWorkflowInputSchema,
-  outputSchema: entityRelationExtractionChunkArraySchema,
+  inputSchema: z.object({}),
+  outputSchema: z.array(z.string()),
   description: "Loads chunk JSON and validates it against chunk schema array.",
   execute: async ({ inputData }) => {
-    const parsed = await readWorkspaceRelativeJson({
-      configuredPath: inputData.chunksFilePath,
-      envVarName: "chunksFilePath",
-      dataLabel: "chunks data",
-    })
-    entityRelationExtractionChunkArraySchema
-    const validation = entityRelationExtractionChunkArraySchema.safeParse(parsed)
-    if (!validation.success) {
-      throw new Error(
-        `Invalid chunks JSON shape in '${inputData.chunksFilePath}': ${validation.error.message}`,
-      )
-    }
+    console.log(`[${loadAndValidateChunksStep.id}] - Loading and validating chunks from ${TARGET_DOCUMENT_DIR}`)
 
-    return validation.data
+    const folder = await readdir(TARGET_DOCUMENT_DIR, { withFileTypes: true })
+
+    const filePaths = folder
+      .filter((dirent) => dirent.isFile() && dirent.name.endsWith(".json"))
+      .map((dirent) => path.join(TARGET_DOCUMENT_DIR, dirent.name))
+
+    return filePaths
   },
 })

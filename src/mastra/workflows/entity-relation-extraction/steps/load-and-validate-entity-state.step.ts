@@ -1,31 +1,26 @@
-import { readWorkspaceRelativeJson } from "@/mastra/workflows/entity-extraction/helpers/read-workspace-relative-json"
 import { entityExtractionWorkflowStateSchema } from "@/mastra/workflows/entity-extraction/schemas"
-import {
-  entityRelationExtractionWorkflowInputSchema,
-  loadedChunksPayloadSchema,
-} from "@/mastra/workflows/entity-relation-extraction/schemas"
 import { createStep } from "@mastra/core/workflows"
+import { readFile } from "node:fs/promises"
 import z from "zod"
+
+const ENTITY_EXTRACTION_STATE_PATH = ("../../docs/entity-extraction/global-state.json")
 
 export const loadAndValidateEntityStateStep = createStep({
   id: "load-and-validate-entity-state",
-  inputSchema: entityRelationExtractionWorkflowInputSchema,
+  inputSchema: z.object({}),
   outputSchema: entityExtractionWorkflowStateSchema,
   description: "Loads entity state JSON and validates expected workflow schema.",
-  execute: async ({ inputData, setState }) => {
-    const parsed = await readWorkspaceRelativeJson({
-      configuredPath: inputData.entitiesStateFilePath,
-      envVarName: "entitiesStateFilePath",
-      dataLabel: "entity extraction state",
-    })
-
+  execute: async ({ }) => {
+    console.log(`[${loadAndValidateEntityStateStep.id}] - Loading and validating entity state JSON.`)
+    const raw = await readFile(ENTITY_EXTRACTION_STATE_PATH, "utf-8")
+    const parsed = JSON.parse(raw)
     const validation = entityExtractionWorkflowStateSchema.safeParse(parsed)
     if (!validation.success) {
       throw new Error(
-        `Invalid entity state JSON shape in '${inputData.entitiesStateFilePath}': ${validation.error.message}`,
+        `Invalid entity state JSON shape in '${ENTITY_EXTRACTION_STATE_PATH}': ${validation.error.message}`,
       )
     }
-
+    console.log(`[${loadAndValidateEntityStateStep.id}] - Successfully validated entity state JSON.`)
     return validation.data
   },
 })
