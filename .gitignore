@@ -13,5 +13,7 @@ dist
 /src/docs/chunked/**
 /src/docs/entity-extraction/**
 
+.opencode
+
 *.duckdb
 *.duckdb.wal
