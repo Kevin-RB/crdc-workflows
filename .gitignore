@@ -17,3 +17,5 @@ dist
 
 *.duckdb
 *.duckdb.wal
+
+/src/docs/neo4j/schema.json
