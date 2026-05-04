@@ -3,7 +3,7 @@ import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 import neo4j from 'neo4j-driver';
 
-// Initialize your driver (replace with your Aura credentials)
+// 1. Initialize Driver
 const driver = neo4j.driver(
     process.env.NEO4J_URI!,
     neo4j.auth.basic(process.env.NEO4J_USERNAME!, process.env.NEO4J_PASSWORD!)
