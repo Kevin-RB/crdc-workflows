@@ -1,4 +1,5 @@
 import { executeNeo4jCypher } from "@/mastra/tools/neo4j-cypher"
+import { searchGraphTerms } from "@/mastra/tools/test-fuzzy-search"
 import { Agent } from "@mastra/core/agent"
 import { Memory } from "@mastra/memory"
 
@@ -20,14 +21,19 @@ export const crdcAgent = new Agent({
     - (:Document)-[:HAS_CHUNK]->(:Chunk)
     - (:Chunk)-[:MENTIONS]->(:Term)
     - (:Term)-[:HAS_TYPE]->(:TermType)
-    - Term-to-Term semantics: [:CAUSES, :PREVENTS, :IMPROVES, :REDUCES, :PART_OF]
+    - Term-to-Term semantics: [:APPLIED_TO, :ASSOCIATED_WITH, :CAUSES, :CONTAINS, :CONTROLLED_BY, :IMPROVES, :INCREASES, :LOCATED_IN, :MANAGED_BY, :MEASURED_BY, :PART_OF, :PREVENTS, :PRODUCES, :REDUCES, :USED_FOR, :USED_IN]
 
     RULES:
     1. Only use the node labels, relationships, and properties listed above.
-    2. ALWAYS use the executeNeo4jCypher tool to run your query.
+    2. ALWAYS follow the rules for querying below to find the exact 'name' of a Term before using it in a Cypher query.
     3. Synthesize the JSON results returned by the tool into a clear, conversational answer.
-    4. Dont just just all relationships or aliases, from the result, generate a concise summary of the most relevant information to answer the user's question.
 
+    === RULES FOR QUERYING ===
+    1. THE VOCABULARY RULE: You must NEVER guess the name of a Term when writing a Cypher query. 
+    2. If the user asks about a concept (e.g., "tell me about weeds"), you MUST first call the 'searchGraphTerms' tool with the concept.
+    3. Once the search tool returns the exact 'ExactName' (e.g., "Weeds/herbicides"), use THAT exact string in your Cypher query via the 'executeNeo4jCypher' tool.
+    4. THE CONTEXT RULE: When explaining how two concepts relate, you must also briefly define what both concepts are. If your pathfinding query only returns names, you MUST run a second Cypher query to fetch the 'Chunk' text for those specific terms before answering the user.
+    
     === EXAMPLES OF GOOD QUERIES ===
 
     User: "Tell me about aphids" or "What is X?"
@@ -63,10 +69,25 @@ export const crdcAgent = new Agent({
     t2.name AS Target,
     collect(DISTINCT {document: d.title, text: c.text})[0..3] AS Context
     LIMIT 5
+
+    User: "How does siphon irrigation relate to myBMP?" or "What is the connection between X and Y?"
+    Cypher:
+    MATCH (start:Term {name: 'siphon irrigation'}), (end:Term {name: 'myBMP'})
+    MATCH p = shortestPath((start)-[*]-(end))
+    WITH p, start, end LIMIT 1
+    OPTIONAL MATCH (c1:Chunk)-[:MENTIONS]->(start)
+    WITH p, end, collect(DISTINCT c1.text)[0] AS StartDefinition
+    OPTIONAL MATCH (c2:Chunk)-[:MENTIONS]->(end)
+    RETURN
+    [n IN nodes(p) | n.name] AS ConceptPath,
+    [rel IN relationships(p) | type(rel)] AS ConnectionTypes,
+    StartDefinition,
+    collect(DISTINCT c2.text)[0] AS EndDefinition
   `,
     model: 'lmstudio/google/gemma-4-26b-a4b',
     memory: new Memory(),
     tools: {
         executeNeo4jCypher,
+        searchGraphTerms
     }
 })
