@@ -1,7 +1,6 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 import neo4j from "neo4j-driver"
-import { get } from "node:http"
 
 const getRequiredEnv = (key) => {
   const value = process.env[key]
@@ -27,11 +26,6 @@ const getNeo4jUri = () => {
     return `neo4j+s://${instanceName}.databases.neo4j.io`
   }
 
-  const outputFileName = process.env.SCHEMA_OUTPUT_FILENAME || "schema.json"
-  if (outputFileName) {
-    return outputFileName
-  }
-
   throw new Error("Missing NEO4J_URI or Aura instance details")
 }
 
@@ -40,7 +34,6 @@ const main = async () => {
   const username = getRequiredEnv("NEO4J_USERNAME")
   const password = getRequiredEnv("NEO4J_PASSWORD")
   const database = getRequiredEnv("NEO4J_DATABASE")
-  const outputFileName = getRequiredEnv("SCHEMA_OUTPUT_FILENAME")
 
   const driver = neo4j.driver(uri, neo4j.auth.basic(username, password))
   const session = driver.session({ database })
@@ -58,8 +51,7 @@ const main = async () => {
     const outputDir = path.resolve(process.cwd(), "src/docs/neo4j")
     await fs.mkdir(outputDir, { recursive: true })
 
-    const outputFileName = getRequiredEnv("SCHEMA_OUTPUT_FILENAME")
-    const outputPath = path.join(outputDir, outputFileName)
+    const outputPath = path.join(outputDir, "schema.json")
     await fs.writeFile(outputPath, JSON.stringify(schema, null, 2), "utf-8")
 
     console.log(`Schema written to ${outputPath}`)

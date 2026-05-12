@@ -16,7 +16,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.14.0",
+  "packageManager": "pnpm@10.33.2",
   "type": "module",
   "engines": {
     "node": ">=22.13.0"
@@ -27,15 +27,17 @@
     "@mastra/evals": "^1.2.1",
     "@mastra/libsql": "^1.9.0",
     "@mastra/loggers": "^1.1.1",
-    "@mastra/memory": "^1.17.2",
+    "@mastra/memory": "^1.17.4",
     "@mastra/observability": "^1.10.1",
     "@mastra/rag": "^2.2.1",
+    "neo4j-driver": "^6.0.1",
     "posthog-node": "5.30.6",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
     "mastra": "^1.6.0",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.2"
   }
 }
