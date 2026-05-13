@@ -14,10 +14,11 @@ import { crdcAgent } from '@/mastra/agents/crdc-agent/crdc-agent';
 import { entityRelationExtractionWorkflow } from '@/mastra/workflows/entity-relation-extraction-workflow';
 import { rockyAgent } from '@/mastra/agents/rocky/rocky-agent';
 import { documentChunksWorkflow } from '@/mastra/workflows/document-chunks.workflow';
+import { crdcSupervisor } from '@/mastra/agents/crdc-agent/crdc-supervisor';
 
 export const mastra = new Mastra({
   workflows: { weatherWorkflow, entityExtractionWorkflow, entityRelationExtractionWorkflow, documentChunksWorkflow },
-  agents: { weatherAgent, entityExtractionAgent, crdcAgent, rockyAgent },
+  agents: { weatherAgent, entityExtractionAgent, crdcAgent, rockyAgent, crdcSupervisor },
   scorers: { toolCallAppropriatenessScorer, completenessScorer, translationScorer },
   storage: new MastraCompositeStore({
     id: 'composite-storage',

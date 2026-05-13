@@ -6,6 +6,8 @@ import { Memory } from "@mastra/memory"
 export const crdcAgent = new Agent({
     id: "crdc-agent",
     name: "CRDC Agent",
+    description: `Use this agent to find specific textual evidence, citations, programs, organizations, and granular semantic relationships extracted directly from CRDC production manuals. 
+    It specializes in finding 'where' information is mentioned in the text and 'how' specific terms are linguistically associated within document chunks.`,
     instructions: `
     You are an expert data analyst querying a Neo4j knowledge graph.
     Translate the user's natural language questions into read-only Cypher queries.
@@ -84,7 +86,7 @@ export const crdcAgent = new Agent({
     StartDefinition,
     collect(DISTINCT c2.text)[0] AS EndDefinition
   `,
-    model: 'lmstudio/google/gemma-4-26b-a4b',
+    model: 'lmstudio/google/gemma-4-e4b',
     memory: new Memory(),
     tools: {
         executeNeo4jCypher,

@@ -34,6 +34,7 @@ const main = async () => {
   const username = getRequiredEnv("NEO4J_USERNAME")
   const password = getRequiredEnv("NEO4J_PASSWORD")
   const database = getRequiredEnv("NEO4J_DATABASE")
+  const outputFilename = process.env.SCHEMA_OUTPUT_FILENAME || "schema.json"
 
   const driver = neo4j.driver(uri, neo4j.auth.basic(username, password))
   const session = driver.session({ database })
@@ -51,7 +52,7 @@ const main = async () => {
     const outputDir = path.resolve(process.cwd(), "src/docs/neo4j")
     await fs.mkdir(outputDir, { recursive: true })
 
-    const outputPath = path.join(outputDir, "schema.json")
+    const outputPath = path.join(outputDir, outputFilename)
     await fs.writeFile(outputPath, JSON.stringify(schema, null, 2), "utf-8")
 
     console.log(`Schema written to ${outputPath}`)
