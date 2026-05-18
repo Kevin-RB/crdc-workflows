@@ -5,20 +5,18 @@ import { LibSQLStore } from '@mastra/libsql';
 import { DuckDBStore } from "@mastra/duckdb";
 import { MastraCompositeStore } from '@mastra/core/storage';
 import { Observability, DefaultExporter, CloudExporter, SensitiveDataFilter } from '@mastra/observability';
-import { weatherWorkflow } from './workflows/weather-workflow';
-import { weatherAgent } from './agents/weather-agent';
 import { toolCallAppropriatenessScorer, completenessScorer, translationScorer } from './scorers/weather-scorer';
 import { entityExtractionWorkflow } from '@/mastra/workflows/entity-extraction-workflow';
 import { entityExtractionAgent } from '@/mastra/agents/entity-extraction/entity-extraction-agent';
-import { crdcAgent } from '@/mastra/agents/crdc-agent/crdc-agent';
+import { chatAgent } from '@/mastra/agents/chat-agent/chat-agent';
 import { entityRelationExtractionWorkflow } from '@/mastra/workflows/entity-relation-extraction-workflow';
-import { rockyAgent } from '@/mastra/agents/rocky/rocky-agent';
+import { relationBuildingAgent } from '@/mastra/agents/relation-building/relation-building-agent';
 import { documentChunksWorkflow } from '@/mastra/workflows/document-chunks.workflow';
-import { crdcSupervisor } from '@/mastra/agents/crdc-agent/crdc-supervisor';
+import { supervisorAgent } from '@/mastra/agents/chat-agent/supervisor-agent';
 
 export const mastra = new Mastra({
-  workflows: { weatherWorkflow, entityExtractionWorkflow, entityRelationExtractionWorkflow, documentChunksWorkflow },
-  agents: { weatherAgent, entityExtractionAgent, crdcAgent, rockyAgent, crdcSupervisor },
+  workflows: { entityExtractionWorkflow, entityRelationExtractionWorkflow, documentChunksWorkflow },
+  agents: { entityExtractionAgent, chatAgent, relationBuildingAgent, supervisorAgent },
   scorers: { toolCallAppropriatenessScorer, completenessScorer, translationScorer },
   storage: new MastraCompositeStore({
     id: 'composite-storage',

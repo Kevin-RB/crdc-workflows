@@ -1,6 +1,6 @@
 import { chunkSchema } from "@/interface/chunk"
-import { entityRelationExtractionStructuredOutputSchema } from "@/mastra/agents/rocky/schema"
-import { RELATION_EXTRACTION_SYSTEM_PROMPT } from "@/mastra/agents/rocky/system-prompts"
+import { entityRelationExtractionStructuredOutputSchema } from "@/mastra/agents/relation-building/schema"
+import { RELATION_EXTRACTION_SYSTEM_PROMPT } from "@/mastra/agents/relation-building/system-prompts"
 import { loadAndValidateEntityStateStep } from "@/mastra/workflows/entity-relation-extraction/steps/load-and-validate-entity-state.step"
 import {
   entityRelationExtractionWorkflowStateSchema,

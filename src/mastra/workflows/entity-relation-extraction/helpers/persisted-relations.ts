@@ -1,6 +1,6 @@
 import {
   entityRelationExtractionStructuredOutputSchema,
-} from "@/mastra/agents/rocky/schema"
+} from "@/mastra/agents/relation-building/schema"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 import z from "zod"
@@ -19,7 +19,7 @@ export const entityRelationExtractionWorkflowStateSchema = z.object({
 
 export const entityRelationExtractionPersistedStateSchema =
   entityRelationExtractionWorkflowStateSchema.extend({
-  updatedAt: z.string().trim().min(1),
+    updatedAt: z.string().trim().min(1),
   })
 
 export type EntityRelationExtractionWorkflowState = z.infer<

@@ -1,5 +1,5 @@
 import { createWorkflow } from "@mastra/core/workflows"
-import { entityRelationExtractionStructuredOutputSchema } from "@/mastra/agents/rocky/schema"
+import { entityRelationExtractionStructuredOutputSchema } from "@/mastra/agents/relation-building/schema"
 import { entityRelationExtractionWorkflowStateSchema } from "@/mastra/workflows/entity-relation-extraction/helpers/persisted-relations"
 
 import { hydrateRelationsStateStep } from "@/mastra/workflows/entity-relation-extraction/steps/hydrate-relations-state.step"

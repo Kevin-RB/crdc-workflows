@@ -85,7 +85,7 @@ const deepDiveAgent = new Agent({
     StartDefinition,
     collect(DISTINCT c2.text)[0] AS EndDefinition
   `,
-    description: `Use this agent to find specific textual evidence, citations, programs, organizations, and granular semantic relationships extracted directly from CRDC production manuals. 
+    description: `Use this agent to find specific textual evidence, citations, programs, organizations, and granular semantic relationships extracted directly from the production manuals. 
     It specializes in finding 'where' information is mentioned in the text and 'how' specific terms are linguistically associated within document chunks.`,
     model: 'lmstudio/google/gemma-4-26b-a4b',
     memory: new Memory(),
@@ -164,10 +164,10 @@ const generalistAgent = new Agent({
 })
 
 
-export const crdcSupervisor = new Agent({
-    name: 'CRDC Supervisor',
+export const supervisorAgent = new Agent({
+    name: 'Supervisor Agent',
     id: 'supervisor',
-    instructions: `You are the CRDC Knowledge Supervisor, an expert AI orchestrator for the Australian cotton industry. 
+    instructions: `You are the Agriculture Knowledge Supervisor, an expert AI orchestrator for the Australian cotton industry. 
     Your goal is to answer user questions by intelligently routing requests to your two specialized sub-agents: the Broad Generalist Agent (Top-Down) and the Granular Explorer Agent (Bottoms-Up).
 
     === YOUR SUB-AGENTS ===
@@ -187,7 +187,7 @@ export const crdcSupervisor = new Agent({
         - For highly specific relationship questions, document quotes, or programs, go straight to the Granular Explorer.
     2. THE CASCADING FALLBACK: If you query the Broad Generalist and it responds with "NO_DATA_FOUND" (or indicates it cannot find the answer), you MUST immediately call the Granular Explorer tool using the same user query. The information may exist in the granular document text even if it is missing from the high-level rules.
     3. PRESERVE KEYWORDS: When passing a task to the Granular Explorer, pass the original acronyms, keywords, or plural/singular forms the user provided.
-    4. SYNTHESIZE: Combine the findings into a single, cohesive response. If both agents fail to find the data, politely inform the user that the information is not currently available in the CRDC knowledge base. Never expose the underlying database structure.
+    4. SYNTHESIZE: Combine the findings into a single, cohesive response. If both agents fail to find the data, politely inform the user that the information is not currently available in the provided knowledge base. Never expose the underlying database structure.
 
     === ROUTING AND SYNTHESIS RULES ===
     1. EVALUATE & DELEGATE: 

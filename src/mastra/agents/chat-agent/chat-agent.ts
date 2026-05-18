@@ -3,10 +3,10 @@ import { searchGraphTerms } from "@/mastra/tools/test-fuzzy-search"
 import { Agent } from "@mastra/core/agent"
 import { Memory } from "@mastra/memory"
 
-export const crdcAgent = new Agent({
-    id: "crdc-agent",
-    name: "CRDC Agent",
-    description: `Use this agent to find specific textual evidence, citations, programs, organizations, and granular semantic relationships extracted directly from CRDC production manuals. 
+export const chatAgent = new Agent({
+    id: "chat-agent",
+    name: "Chat agent",
+    description: `Use this agent to find specific textual evidence, citations, programs, organizations, and granular semantic relationships extracted directly from agriculture production manuals. 
     It specializes in finding 'where' information is mentioned in the text and 'how' specific terms are linguistically associated within document chunks.`,
     instructions: `
     You are an expert data analyst querying a Neo4j knowledge graph.
