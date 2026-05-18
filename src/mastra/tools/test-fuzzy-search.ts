@@ -18,6 +18,8 @@ export const searchGraphTerms = createTool({
     const session = driver.session();
     try {
       // The '~' adds the "fuzziness" to handle typos
+      // Matches queries like "tung tung tung sahur" with "tung sahur", retrieves the canonical stored name and aliases,
+      // and returns them to the agent for accurate Cypher querying.
       const query = `
         CALL db.index.fulltext.queryNodes("term_search", $searchTerm + "~") 
         YIELD node, score 
