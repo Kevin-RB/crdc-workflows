@@ -1,0 +1,11 @@
+services:
+  mastra:
+    build: .
+    ports:
+      - "4111:4111"
+    env_file:
+      - .env
+    environment:
+      LMSTUDIO_BASE_URL: "http://host.docker.internal:1234/v1"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
