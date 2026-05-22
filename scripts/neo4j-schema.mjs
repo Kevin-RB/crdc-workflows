@@ -23,7 +23,13 @@ const main = async () => {
   const username = getRequiredEnv(`NEO4J_USERNAME${suffix}`);
   const password = getRequiredEnv(`NEO4J_PASSWORD${suffix}`);
   const database = getRequiredEnv(`NEO4J_DATABASE${suffix}`);
-  const outputFilename = process.env.SCHEMA_OUTPUT_FILENAME || "schema.json"
+  let outputFilename = "schema"
+
+  if (suffix === '_CO') {
+    outputFilename += "_bottom_up.json"
+  } else if (suffix === '_PK') {
+    outputFilename += "_top_down.json"
+  }
 
   const driver = neo4j.driver(uri, neo4j.auth.basic(username, password))
   const session = driver.session({ database })

@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "mastra dev",
     "build": "mastra build",
+    "build:studio": "mastra build --studio",
     "start": "mastra start",
     "neo4j:schema-bottom-up": "cross-env SCHEMA_GENERATION_TYPE=BOTTOM_UP node --env-file=.env scripts/neo4j-schema.mjs",
     "neo4j:schema-top-down": "cross-env SCHEMA_GENERATION_TYPE=TOP_DOWN node --env-file=.env scripts/neo4j-schema.mjs",
@@ -36,6 +37,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.7.0",
+    "cross-env": "^10.1.0",
     "mastra": "^1.8.1",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"

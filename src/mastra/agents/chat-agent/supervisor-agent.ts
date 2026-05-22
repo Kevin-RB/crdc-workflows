@@ -1,8 +1,9 @@
-import { Agent } from '@mastra/core/agent'
-import { Memory } from '@mastra/memory'
-import { LibSQLStore } from '@mastra/libsql'
 import { executeNeo4jCypherAgentA, executeNeo4jCypherAgentB } from '@/mastra/tools/neo4j-cypher'
 import { searchGraphTerms } from '@/mastra/tools/test-fuzzy-search'
+import { lmstudioModel } from '@/mastra/agents/lmstudio'
+import { Agent } from '@mastra/core/agent'
+import { LibSQLStore } from '@mastra/libsql'
+import { Memory } from '@mastra/memory'
 
 const deepDiveAgent = new Agent({
     id: 'granular-explorer-agent',
@@ -87,7 +88,7 @@ const deepDiveAgent = new Agent({
   `,
     description: `Use this agent to find specific textual evidence, citations, programs, organizations, and granular semantic relationships extracted directly from the production manuals. 
     It specializes in finding 'where' information is mentioned in the text and 'how' specific terms are linguistically associated within document chunks.`,
-    model: 'lmstudio/google/gemma-4-26b-a4b',
+    model: lmstudioModel('lmstudio/google/gemma-4-26b-a4b' as const),
     memory: new Memory(),
     tools: {
         executeNeo4jCypher: executeNeo4jCypherAgentA,
@@ -156,7 +157,7 @@ const generalistAgent = new Agent({
     description: `Use this agent to explore a highly detailed, granular knowledge graph constructed from the ground up via LLM entity extraction. 
     It contains a vast array of specific entities, their types, and complex, nuanced semantic relationships.
     Use this to dive deep into how specific concepts interact, discover granular details, and pull the exact document chunks and contextual text where these entities are discussed.`,
-    model: 'lmstudio/google/gemma-4-26b-a4b',
+    model: lmstudioModel('lmstudio/google/gemma-4-26b-a4b' as const),
     memory: new Memory(),
     tools: {
         executeNeo4jCypher: executeNeo4jCypherAgentB
@@ -204,7 +205,7 @@ export const supervisorAgent = new Agent({
     7. PRESERVE KEYWORDS: When passing a task to the Deep-Dive agent, do not over-formalize the entity names. Pass the original acronyms and keywords the user provided, as the Deep-Dive graph often uses shorthand or exact text from the manuals.
     `,
 
-    model: 'lmstudio/google/gemma-4-26b-a4b',
+    model: lmstudioModel('lmstudio/google/gemma-4-26b-a4b' as const),
     agents: { generalistAgent, deepDiveAgent },
     memory: new Memory({
         storage: new LibSQLStore({ id: 'storage', url: 'file:mastra.db' }),

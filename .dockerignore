@@ -1,0 +1,12 @@
+.DS_Store
+.env
+.mastra
+.mastra-output
+.pnpm-store
+.pnpm-store.v3
+.vscode
+dist
+node_modules
+npm-debug.log
+pnpm-debug.log
+tsconfig.tsbuildinfo

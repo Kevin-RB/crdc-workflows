@@ -39,7 +39,6 @@ pnpm install
      - `LMSTUDIO_API_KEY` (dummy value is fine for LMStudio)
      - `NEO4J_URI_CO`, `NEO4J_USERNAME_CO`, `NEO4J_PASSWORD_CO`, `NEO4J_DATABASE_CO`
      - `NEO4J_URI_PK`, `NEO4J_USERNAME_PK`, `NEO4J_PASSWORD_PK`, `NEO4J_DATABASE_PK`
-     - `SCHEMA_OUTPUT_FILENAME`
      - Chunking thresholds (optional to tune):
        - `ENTITY_EXTRACTION_ENTITY_MATCH_THRESHOLD`
        - `ENTITY_EXTRACTION_WEAK_HEADING_MAX_LENGTH`
@@ -68,6 +67,22 @@ pnpm run dev
 ```
 
 Then open `http://localhost:4111` to run workflows and test agents.
+
+## Run With Docker (Alternative)
+
+This is a quick way to try the project without a local Node.js setup. You still access Mastra Studio at `http://localhost:4111` and can run workflows and chat with agents as usual. For now, data created inside the container is ephemeral, so local runs are recommended for durable state.
+
+Recommendation: Use Docker Desktop and make sure it is running before you start the container.
+
+```shell
+docker compose up --build
+```
+
+Note: `docker-compose.yml` maps `LMSTUDIO_BASE_URL` to `http://host.docker.internal:1234/v1` so the container can reach a locally running LMStudio server on your host machine.
+
+Planned improvements:
+- Direct output to your local machine (durable state and workflow outputs via volumes/mounted volumes).
+- Better containerized dev experience (watch code changes and rebuild similar to local running).
 
 ## Intended Workflow Order
 

@@ -1,5 +1,6 @@
 import { executeNeo4jCypher } from "@/mastra/tools/neo4j-cypher"
 import { searchGraphTerms } from "@/mastra/tools/test-fuzzy-search"
+import { lmstudioModel } from "@/mastra/agents/lmstudio"
 import { Agent } from "@mastra/core/agent"
 import { Memory } from "@mastra/memory"
 
@@ -86,7 +87,7 @@ export const chatAgent = new Agent({
     StartDefinition,
     collect(DISTINCT c2.text)[0] AS EndDefinition
   `,
-    model: 'lmstudio/google/gemma-4-e4b',
+    model: lmstudioModel("lmstudio/google/gemma-4-e4b" as const),
     memory: new Memory(),
     tools: {
         executeNeo4jCypher,
