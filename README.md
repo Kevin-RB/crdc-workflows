@@ -72,6 +72,8 @@ Then open `http://localhost:4111` to run workflows and test agents.
 
 This is a quick way to try the project without a local Node.js setup. You still access Mastra Studio at `http://localhost:4111` and can run workflows and chat with agents as usual. For now, data created inside the container is ephemeral, so local runs are recommended for durable state.
 
+Recommendation: Use Docker Desktop and make sure it is running before you start the container.
+
 ```shell
 docker compose up --build
 ```
