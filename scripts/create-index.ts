@@ -8,27 +8,9 @@ const getRequiredEnv = (key: string) => {
   return value
 }
 
-const getNeo4jUri = () => {
-  const directUri = process.env.NEO4J_URI
-  if (directUri) {
-    return directUri
-  }
-
-  const instanceId = process.env.AURA_INSTANCEID
-  if (instanceId) {
-    return `neo4j+s://${instanceId}.databases.neo4j.io`
-  }
-
-  const instanceName = process.env.AURA_INSTANCENAME
-  if (instanceName) {
-    return `neo4j+s://${instanceName}.databases.neo4j.io`
-  }
-
-  throw new Error("Missing NEO4J_URI or Aura instance details")
-}
 
 const main = async () => {
-  const uri = getNeo4jUri()
+  const uri = getRequiredEnv("NEO4J_URI")
   const username = getRequiredEnv("NEO4J_USERNAME")
   const password = getRequiredEnv("NEO4J_PASSWORD")
   const database = getRequiredEnv("NEO4J_DATABASE")

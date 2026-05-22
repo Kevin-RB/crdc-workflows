@@ -29,7 +29,7 @@ export const invokeRockyOnChunkStep = createStep({
 
     console.log(`[invokeRockyOnChunkStep] Executing for chunkId: ${inputData.chunkId}`)
 
-    const rocky = mastra.getAgent("rockyAgent")
+    const rocky = mastra.getAgent("relation-building-agent")
 
     const entityList = getStepResult(loadAndValidateEntityStateStep)
 
