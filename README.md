@@ -104,6 +104,7 @@ entity-relation-extraction-workflow
 Notes:
 - The first workflow currently expects inputs that match the OpenDataLoader parsing output. You can adapt the input steps to accept another parsing/OCR tool.
 - The downstream workflows rely on files produced by the earlier steps.
+- After the workflows finish, you still need to ingest the outputs into Neo4j (or another graph database). At the moment this is done with a standalone Python script that is not yet part of this repo; it will be moved here to streamline ingestion.
 
 ## Durability and Reruns
 
