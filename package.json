@@ -8,8 +8,8 @@
     "dev": "mastra dev",
     "build": "mastra build",
     "start": "mastra start",
-    "neo4j:schema": "node --env-file=.env scripts/neo4j-schema.mjs",
-    "neo4j:schema-pk": "node --env-file=.env.dev scripts/neo4j-schema.mjs",
+    "neo4j:schema-bottom-up": "cross-env SCHEMA_GENERATION_TYPE=BOTTOM_UP node --env-file=.env scripts/neo4j-schema.mjs",
+    "neo4j:schema-top-down": "cross-env SCHEMA_GENERATION_TYPE=TOP_DOWN node --env-file=.env scripts/neo4j-schema.mjs",
     "neo4j:create-index": "node --env-file=.env --import tsx scripts/create-index.ts",
     "neo4j:test-index": "node --env-file=.env --import tsx scripts/test-fulltext-index.ts"
   },

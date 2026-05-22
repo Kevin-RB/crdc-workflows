@@ -10,30 +10,19 @@ const getRequiredEnv = (key) => {
   return value
 }
 
-const getNeo4jUri = () => {
-  const directUri = process.env.NEO4J_URI
-  if (directUri) {
-    return directUri
-  }
-
-  const instanceId = process.env.AURA_INSTANCEID
-  if (instanceId) {
-    return `neo4j+s://${instanceId}.databases.neo4j.io`
-  }
-
-  const instanceName = process.env.AURA_INSTANCENAME
-  if (instanceName) {
-    return `neo4j+s://${instanceName}.databases.neo4j.io`
-  }
-
-  throw new Error("Missing NEO4J_URI or Aura instance details")
-}
+const getSchemaEnvSuffix = () => {
+  const type = process.env.SCHEMA_GENERATION_TYPE;
+  if (type === 'BOTTOM_UP') return '_CO';
+  if (type === 'TOP_DOWN') return '_PK';
+  return ''; // Fallback to current behavior (no suffix)
+};
 
 const main = async () => {
-  const uri = getNeo4jUri()
-  const username = getRequiredEnv("NEO4J_USERNAME")
-  const password = getRequiredEnv("NEO4J_PASSWORD")
-  const database = getRequiredEnv("NEO4J_DATABASE")
+  const suffix = getSchemaEnvSuffix();
+  const uri = getRequiredEnv(`NEO4J_URI${suffix}`);
+  const username = getRequiredEnv(`NEO4J_USERNAME${suffix}`);
+  const password = getRequiredEnv(`NEO4J_PASSWORD${suffix}`);
+  const database = getRequiredEnv(`NEO4J_DATABASE${suffix}`);
   const outputFilename = process.env.SCHEMA_OUTPUT_FILENAME || "schema.json"
 
   const driver = neo4j.driver(uri, neo4j.auth.basic(username, password))
