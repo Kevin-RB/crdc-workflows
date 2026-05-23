@@ -208,6 +208,6 @@ export const supervisorAgent = new Agent({
     model: lmstudioModel('lmstudio/google/gemma-4-26b-a4b' as const),
     agents: { generalistAgent, deepDiveAgent },
     memory: new Memory({
-        storage: new LibSQLStore({ id: 'storage', url: 'file:mastra.db' }),
+        storage: new LibSQLStore({ id: 'storage', url: 'file:./mastra.db' }),
     }),
 })

@@ -1,5 +1,16 @@
 # entity-extraction
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [How To Set Up](#how-to-set-up)
+- [Setup](#setup)
+- [Run With Docker (Alternative)](#run-with-docker-alternative)
+- [Intended Workflow Order](#intended-workflow-order)
+- [Durability and Reruns](#durability-and-reruns)
+- [Scripts](#scripts)
+
 ## Overview
 
 This project is a Mastra-based pipeline that turns source documents into structured entities and then builds relationships between those entities. It is designed to run through Mastra Studio and persists workflow state to disk so you can resume or rerun specific chunks without starting over.
@@ -70,19 +81,23 @@ Then open `http://localhost:4111` to run workflows and test agents.
 
 ## Run With Docker (Alternative)
 
-This is a quick way to try the project without a local Node.js setup. You still access Mastra Studio at `http://localhost:4111` and can run workflows and chat with agents as usual. For now, data created inside the container is ephemeral, so local runs are recommended for durable state.
+>Recommendation: Use Docker Desktop and make sure it is running before you start the container.
 
-Recommendation: Use Docker Desktop and make sure it is running before you start the container.
+This is a quick way to try the project without a local Node.js setup. You still access Mastra Studio at `http://localhost:4111` and can run workflows and chat with agents as usual.
+
+The container uses [named volumes](https://docs.docker.com/engine/storage/volumes/) to persist chat sessions across restarts (Workflow durability support in docker comming soon).
+
+Use `--build` only when you've made changes to the code (e.g., after a `git pull`); otherwise, omit it to start much faster:
 
 ```shell
+# First time or after code changes:
 docker compose up --build
+
+# Subsequent runs (loads much faster by reusing the existing image):
+docker compose up
 ```
 
 Note: `docker-compose.yml` maps `LMSTUDIO_BASE_URL` to `http://host.docker.internal:1234/v1` so the container can reach a locally running LMStudio server on your host machine.
-
-Planned improvements:
-- Direct output to your local machine (durable state and workflow outputs via volumes/mounted volumes).
-- Better containerized dev experience (watch code changes and rebuild similar to local running).
 
 ## Intended Workflow Order
 
