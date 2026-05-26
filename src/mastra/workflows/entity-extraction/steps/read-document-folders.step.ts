@@ -1,10 +1,11 @@
 import { documentFolderArraySchema } from "@/mastra/workflows/entity-extraction/schemas"
+import { resolveFromProjectRoot, resolveWorkspaceRoot } from "@/mastra/workflows/lib/workspace-functions"
 import { createStep } from "@mastra/core/workflows"
 import fs from "node:fs/promises"
 import path from "node:path"
 import z from "zod"
 
-const TARGET_DOCUMENTS_DIR = path.resolve(process.cwd(), "../../docs/odl")
+const TARGET_DOCUMENTS_DIR = resolveFromProjectRoot("src/docs/odl")
 
 export const readDocumentFoldersStep = createStep({
   id: "read-document-folders",
@@ -12,6 +13,7 @@ export const readDocumentFoldersStep = createStep({
   inputSchema: z.object({}),
   outputSchema: documentFolderArraySchema,
   execute: async () => {
+    await resolveWorkspaceRoot()
     console.log(`[read-document-folders] Target directory: ${TARGET_DOCUMENTS_DIR}`)
 
     const folders = await fs.readdir(TARGET_DOCUMENTS_DIR, { withFileTypes: true })

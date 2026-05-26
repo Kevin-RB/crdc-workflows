@@ -1,16 +1,18 @@
 import { createStep } from "@mastra/core/workflows"
-import { readdir, readFile } from "node:fs/promises"
+import { resolveFromProjectRoot, resolveWorkspaceRoot } from "@/mastra/workflows/lib/workspace-functions"
+import { readdir } from "node:fs/promises"
 import path from "node:path"
 import z from "zod"
 
-const TARGET_DOCUMENT_DIR = "../../docs/chunked"
+const TARGET_DOCUMENT_DIR = resolveFromProjectRoot("src/docs/chunked")
 
 export const loadAndValidateChunksStep = createStep({
   id: "load-and-validate-chunks",
   inputSchema: z.object({}),
   outputSchema: z.array(z.string()),
   description: "Loads chunk JSON and validates it against chunk schema array.",
-  execute: async ({ inputData }) => {
+  execute: async () => {
+    await resolveWorkspaceRoot()
     console.log(`[${loadAndValidateChunksStep.id}] - Loading and validating chunks from ${TARGET_DOCUMENT_DIR}`)
 
     const folder = await readdir(TARGET_DOCUMENT_DIR, { withFileTypes: true })

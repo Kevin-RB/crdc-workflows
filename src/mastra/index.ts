@@ -13,9 +13,10 @@ import { entityRelationExtractionWorkflow } from '@/mastra/workflows/entity-rela
 import { relationBuildingAgent } from '@/mastra/agents/relation-building/relation-building-agent';
 import { documentChunksWorkflow } from '@/mastra/workflows/document-chunks.workflow';
 import { supervisorAgent } from '@/mastra/agents/chat-agent/supervisor-agent';
+import { neo4jIngestWorkflow } from '@/mastra/workflows/neo4j-ingest-workflow';
 
 export const mastra = new Mastra({
-  workflows: { entityExtractionWorkflow, entityRelationExtractionWorkflow, documentChunksWorkflow },
+  workflows: { entityExtractionWorkflow, entityRelationExtractionWorkflow, documentChunksWorkflow, neo4jIngestWorkflow },
   agents: { entityExtractionAgent, chatAgent, relationBuildingAgent, supervisorAgent },
   scorers: { toolCallAppropriatenessScorer, completenessScorer, translationScorer },
   storage: new MastraCompositeStore({

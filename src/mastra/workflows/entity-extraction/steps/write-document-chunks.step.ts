@@ -1,15 +1,17 @@
 import { documentChunksSchema } from "@/mastra/workflows/entity-extraction/schemas"
+import { resolveFromProjectRoot, resolveWorkspaceRoot } from "@/mastra/workflows/lib/workspace-functions"
 import { createStep } from "@mastra/core/workflows"
 import { mkdir, writeFile } from "node:fs/promises"
 import path from "node:path"
 
-const CHUNK_OUTPUT_DIR = path.resolve(process.cwd(), "../../docs/chunked")
+const CHUNK_OUTPUT_DIR = resolveFromProjectRoot("src/docs/chunked")
 
 export const writeDocumentChunksStep = createStep({
   id: "write-document-chunks",
   inputSchema: documentChunksSchema,
   outputSchema: documentChunksSchema,
   execute: async ({ inputData }) => {
+    await resolveWorkspaceRoot()
     await mkdir(CHUNK_OUTPUT_DIR, { recursive: true })
 
     const outputFileName = `${inputData.documentName}.chunked.json`

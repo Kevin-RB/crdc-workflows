@@ -20,3 +20,5 @@ dist
 *.duckdb.wal
 
 /src/docs/neo4j/**
+
+**/temp

@@ -13,11 +13,10 @@ export const readWorkspaceRelativeJson = async ({
   envVarName,
   dataLabel,
 }: ReadWorkspaceRelativeJsonArgs): Promise<unknown> => {
+  const workspaceRoot = await resolveWorkspaceRoot()
   if (path.isAbsolute(configuredPath)) {
     throw new Error(`${envVarName} must be workspace-relative, received absolute path: ${configuredPath}`)
   }
-
-  const workspaceRoot = await resolveWorkspaceRoot()
   const resolvedPath = path.resolve(workspaceRoot, configuredPath)
 
   let raw: string

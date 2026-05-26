@@ -1,13 +1,13 @@
 import {
   entityRelationExtractionStructuredOutputSchema,
 } from "@/mastra/agents/relation-building/schema"
+import { resolveFromProjectRoot, resolveWorkspaceRoot } from "@/mastra/workflows/lib/workspace-functions"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 import z from "zod"
 
-const RELATIONS_OUTPUT_PATH = path.resolve(
-  process.cwd(),
-  "../../docs/entity-extraction/relations.json",
+const RELATIONS_OUTPUT_PATH = resolveFromProjectRoot(
+  "src/docs/entity-extraction/relations.json",
 )
 
 const relationsArraySchema = z.array(entityRelationExtractionStructuredOutputSchema)
@@ -31,6 +31,7 @@ export type EntityRelationExtractionPersistedState = z.infer<
 >
 
 export const initializePersistedEntityRelationsState = async (): Promise<EntityRelationExtractionPersistedState> => {
+  await resolveWorkspaceRoot()
   const initialState: EntityRelationExtractionPersistedState = {
     processedChunkIds: [],
     relations: [],
@@ -44,6 +45,7 @@ export const initializePersistedEntityRelationsState = async (): Promise<EntityR
 }
 
 export const loadPersistedEntityRelationsState = async (): Promise<EntityRelationExtractionPersistedState> => {
+  await resolveWorkspaceRoot()
   const raw = await readFile(RELATIONS_OUTPUT_PATH, "utf-8")
   const parsed = JSON.parse(raw)
   return entityRelationExtractionPersistedStateSchema.parse(parsed)
@@ -52,6 +54,7 @@ export const loadPersistedEntityRelationsState = async (): Promise<EntityRelatio
 export const writePersistedEntityRelationsState = async (
   state: EntityRelationExtractionWorkflowState,
 ): Promise<void> => {
+  await resolveWorkspaceRoot()
   const persistedState: EntityRelationExtractionPersistedState = {
     ...state,
     updatedAt: new Date().toISOString(),
