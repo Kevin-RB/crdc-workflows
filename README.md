@@ -48,8 +48,13 @@ pnpm install
    - Fill in the required values (based on `.env.example`):
      - `OPENAI_API_KEY` (or your chosen provider key in Mastra Studio, if you are using an external inference provider)
      - `LMSTUDIO_API_KEY` (dummy value is fine for LMStudio)
+     - `DOCUMENTS_DIR` (absolute path to input documents)
+     - `OUTPUT_ROOT` (absolute path where workflow outputs are written)
+     (Currently, with 2 working distinct knowledge graphs attached, hence different connection with differentiation suffixes)
      - `NEO4J_URI_CO`, `NEO4J_USERNAME_CO`, `NEO4J_PASSWORD_CO`, `NEO4J_DATABASE_CO`
      - `NEO4J_URI_PK`, `NEO4J_USERNAME_PK`, `NEO4J_PASSWORD_PK`, `NEO4J_DATABASE_PK`
+     - `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`, `NEO4J_DATABASE` (used by Neo4j ingest workflow)
+     - `WIPE_FIRST` (optional, set `true` to wipe Neo4j before ingest)
      - Chunking thresholds (optional to tune):
        - `ENTITY_EXTRACTION_ENTITY_MATCH_THRESHOLD`
        - `ENTITY_EXTRACTION_WEAK_HEADING_MAX_LENGTH`
@@ -58,6 +63,8 @@ pnpm install
        - `ENTITY_EXTRACTION_MIN_CHUNK_ALPHA_RATIO`
        - `ENTITY_EXTRACTION_MAX_CHUNK_SIZE_CHARS`
        - `ENTITY_EXTRACTION_CHUNK_OVERLAP_CHARS`
+
+>Important, if you only wish to use one Knowledge graph, make sure any tool using it points to the right instance (agents, workflows, ingestion scripts)
 
 3. Start Mastra Studio:
 
@@ -70,7 +77,7 @@ Then open `http://localhost:4111` to run workflows and test agents.
 ## Setup
 
 1. Copy `.env.example` to `.env` and fill in required values.
-2. Make sure your document path is set via `ENTITY_EXTRACTION_DOC_PATH`.
+2. Make sure `DOCUMENTS_DIR` and `OUTPUT_ROOT` are set to absolute paths.
 3. Start Mastra Studio:
 
 ```shell
@@ -85,7 +92,7 @@ Then open `http://localhost:4111` to run workflows and test agents.
 
 This is a quick way to try the project without a local Node.js setup. You still access Mastra Studio at `http://localhost:4111` and can run workflows and chat with agents as usual.
 
-The container uses [named volumes](https://docs.docker.com/engine/storage/volumes/) to persist chat sessions across restarts (Workflow durability support in docker comming soon).
+The container uses a [named volume](https://docs.docker.com/engine/storage/volumes/) mounted at `/data` to persist workflow outputs across restarts. Input documents are bind-mounted into `/data/odl`.
 
 Use `--build` only when you've made changes to the code (e.g., after a `git pull`); otherwise, omit it to start much faster:
 
@@ -98,6 +105,10 @@ docker compose up
 ```
 
 Note: `docker-compose.yml` maps `LMSTUDIO_BASE_URL` to `http://host.docker.internal:1234/v1` so the container can reach a locally running LMStudio server on your host machine.
+
+Environment variables used in Docker:
+- `DOCUMENTS_DIR=/data/odl`
+- `OUTPUT_ROOT=/data/output`
 
 ## Intended Workflow Order
 
@@ -138,7 +149,7 @@ Notes:
 
 ## Durability and Reruns
 
-Workflows persist state to disk (see `ENTITY_EXTRACTION_STATE_RELATIVE_FILE_PATH` in `.env`). The state tracks processed chunk IDs so a rerun only processes new or unprocessed chunks.
+Workflows persist state to disk under `OUTPUT_ROOT` (for example `OUTPUT_ROOT/entity-extraction/global-state.json`). The state tracks processed chunk IDs so a rerun only processes new or unprocessed chunks.
 
 To re-run a specific chunk, remove its `chunkId` from the persisted state file and run the workflow again. The workflow will skip IDs that remain in the processed list.
 

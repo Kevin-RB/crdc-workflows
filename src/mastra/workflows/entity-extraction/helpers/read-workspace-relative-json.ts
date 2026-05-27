@@ -1,4 +1,3 @@
-import { resolveWorkspaceRoot } from "@/mastra/workflows/lib/workspace-functions"
 import { readFile } from "node:fs/promises"
 import path from "node:path"
 
@@ -13,26 +12,16 @@ export const readWorkspaceRelativeJson = async ({
   envVarName,
   dataLabel,
 }: ReadWorkspaceRelativeJsonArgs): Promise<unknown> => {
-  if (path.isAbsolute(configuredPath)) {
-    throw new Error(`${envVarName} must be workspace-relative, received absolute path: ${configuredPath}`)
-  }
-
-  const workspaceRoot = await resolveWorkspaceRoot()
-  const resolvedPath = path.resolve(workspaceRoot, configuredPath)
-
-  let raw: string
-  try {
-    raw = await readFile(resolvedPath, "utf-8")
-  } catch (error) {
+  if (!path.isAbsolute(configuredPath)) {
     throw new Error(
-      `Failed to read ${dataLabel} at '${configuredPath}' (resolved: '${resolvedPath}'). Ensure the file exists relative to workspace root '${workspaceRoot}'.`,
-      { cause: error },
+      `Workspace-relative paths are no longer supported for ${dataLabel}. Provide an absolute path via ${envVarName}.`,
     )
   }
 
   try {
+    const raw = await readFile(configuredPath, "utf-8")
     return JSON.parse(raw)
   } catch (error) {
-    throw new Error(`Invalid JSON in ${dataLabel} file '${configuredPath}'.`, { cause: error })
+    throw new Error(`Failed to read ${dataLabel} at '${configuredPath}'.`, { cause: error })
   }
 }

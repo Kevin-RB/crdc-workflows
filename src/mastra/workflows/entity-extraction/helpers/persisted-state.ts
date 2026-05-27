@@ -3,12 +3,12 @@ import {
   EntityExtractionWorkflowState,
   entityExtractionWorkflowStateSchema,
 } from "@/mastra/workflows/entity-extraction/schemas"
+import { resolveFromOutputRoot } from "@/mastra/workflows/lib/workspace-functions"
 import { mkdir, writeFile } from "node:fs/promises"
 import path from "node:path"
 
-const ENTITY_EXTRACTION_STATE_PATH = path.resolve(
-  process.cwd(),
-  "../../docs/entity-extraction/global-state.json",
+const ENTITY_EXTRACTION_STATE_PATH = resolveFromOutputRoot(
+  "entity-extraction/global-state.json",
 )
 
 export const normalizeKnownTypes = (values: string[]): string[] =>

@@ -1,10 +1,11 @@
 import { documentFolderArraySchema } from "@/mastra/workflows/entity-extraction/schemas"
+import { requireDocumentsDir } from "@/mastra/workflows/lib/workspace-functions"
 import { createStep } from "@mastra/core/workflows"
 import fs from "node:fs/promises"
 import path from "node:path"
 import z from "zod"
 
-const TARGET_DOCUMENTS_DIR = path.resolve(process.cwd(), "../../docs/odl")
+const TARGET_DOCUMENTS_DIR = requireDocumentsDir()
 
 export const readDocumentFoldersStep = createStep({
   id: "read-document-folders",

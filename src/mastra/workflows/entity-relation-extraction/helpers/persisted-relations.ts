@@ -1,13 +1,13 @@
 import {
   entityRelationExtractionStructuredOutputSchema,
 } from "@/mastra/agents/relation-building/schema"
+import { resolveFromOutputRoot } from "@/mastra/workflows/lib/workspace-functions"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 import z from "zod"
 
-const RELATIONS_OUTPUT_PATH = path.resolve(
-  process.cwd(),
-  "../../docs/entity-extraction/relations.json",
+const RELATIONS_OUTPUT_PATH = resolveFromOutputRoot(
+  "entity-extraction/relations.json",
 )
 
 const relationsArraySchema = z.array(entityRelationExtractionStructuredOutputSchema)

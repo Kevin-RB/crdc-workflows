@@ -1,38 +1,30 @@
-import { fileURLToPath } from "node:url"
-import { access } from "node:fs/promises"
 import path from "node:path"
 
-
-const PACKAGE_JSON = "package.json"
-export const CHUNKED_OUTPUT_DIR = "src/docs/chunked"
-
-const findWorkspaceRoot = async (startDir: string): Promise<string | null> => {
-  let current = path.resolve(startDir)
-
-  while (true) {
-    try {
-      await access(path.join(current, PACKAGE_JSON))
-      return current
-    } catch {
-      const parent = path.dirname(current)
-      if (parent === current) {
-        return null
-      }
-      current = parent
-    }
-  }
-}
-
-export const resolveWorkspaceRoot = async (): Promise<string> => {
-  const moduleDir = path.dirname(fileURLToPath(import.meta.url))
-  const searchStarts = [process.cwd(), moduleDir]
-
-  for (const start of searchStarts) {
-    const root = await findWorkspaceRoot(start)
-    if (root) {
-      return root
-    }
+export const requireDocumentsDir = (): string => {
+  const value = process.env.DOCUMENTS_DIR
+  if (!value || value.trim().length === 0) {
+    throw new Error("DOCUMENTS_DIR environment variable is required for input data.")
   }
 
-  throw new Error("Unable to locate workspace root (package.json not found).")
+  if (!path.isAbsolute(value)) {
+    throw new Error(`DOCUMENTS_DIR must be an absolute path, received: ${value}`)
+  }
+
+  return value
 }
+
+export const requireOutputRoot = (): string => {
+  const value = process.env.OUTPUT_ROOT
+  if (!value || value.trim().length === 0) {
+    throw new Error("OUTPUT_ROOT environment variable is required for workflow outputs.")
+  }
+
+  if (!path.isAbsolute(value)) {
+    throw new Error(`OUTPUT_ROOT must be an absolute path, received: ${value}`)
+  }
+
+  return value
+}
+
+export const resolveFromOutputRoot = (...segments: string[]): string =>
+  path.resolve(requireOutputRoot(), ...segments)

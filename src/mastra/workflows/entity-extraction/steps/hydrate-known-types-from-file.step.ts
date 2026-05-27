@@ -1,4 +1,5 @@
 import { entityExtractionPersistedStateSchema, entityExtractionWorkflowStateSchema } from "@/mastra/workflows/entity-extraction/schemas"
+import { resolveFromOutputRoot } from "@/mastra/workflows/lib/workspace-functions"
 import { createStep } from "@mastra/core/workflows"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
@@ -9,7 +10,7 @@ const hydrateKnownTypesStateSchema = entityExtractionWorkflowStateSchema.pick({
   rawCandidateEntities: true,
   processedChunkIds: true,
 })
-const GLOBAL_STATE_PATH = path.resolve(process.cwd(), "../../docs/entity-extraction/global-state.json")
+const GLOBAL_STATE_PATH = resolveFromOutputRoot("entity-extraction/global-state.json")
 
 const normalizeKnownTypes = (values: string[]): string[] =>
   Array.from(new Set(values.map((value) => value.trim()).filter((value) => value.length > 0)))
