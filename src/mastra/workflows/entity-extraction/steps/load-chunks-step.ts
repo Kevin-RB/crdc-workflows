@@ -1,17 +1,16 @@
 import { createStep } from "@mastra/core/workflows"
-import { resolveFromProjectRoot, resolveWorkspaceRoot } from "@/mastra/workflows/lib/workspace-functions"
+import { resolveFromOutputRoot } from "@/mastra/workflows/lib/workspace-functions"
 import { readdir } from "node:fs/promises"
 import path from "node:path"
 import z from "zod"
 
-const TARGET_DOCUMENT_DIR = resolveFromProjectRoot("src/docs/chunked")
+const TARGET_DOCUMENT_DIR = resolveFromOutputRoot("chunked")
 
 export const loadChunksStep = createStep({
   id: "load-chunks-step",
   inputSchema: z.object({}),
   outputSchema: z.array(z.string({ error: "Expected file path" })),
   execute: async () => {
-    await resolveWorkspaceRoot()
     console.log(`[${loadChunksStep.id}] - Loading chunks...`)
 
     const folder = await readdir(TARGET_DOCUMENT_DIR, { withFileTypes: true })

@@ -4,12 +4,12 @@ import {
   initializePersistedEntityRelationsState,
   loadPersistedEntityRelationsState,
 } from "@/mastra/workflows/entity-relation-extraction/helpers/persisted-relations"
-import { resolveFromProjectRoot, resolveWorkspaceRoot } from "@/mastra/workflows/lib/workspace-functions"
+import { resolveFromOutputRoot } from "@/mastra/workflows/lib/workspace-functions"
 import { access } from "node:fs/promises"
 import z from "zod"
 
-const RELATIONS_OUTPUT_PATH = resolveFromProjectRoot(
-  "src/docs/entity-extraction/relations.json",
+const RELATIONS_OUTPUT_PATH = resolveFromOutputRoot(
+  "entity-extraction/relations.json",
 )
 
 const hydrateRelationsStateSchema = entityRelationExtractionWorkflowStateSchema
@@ -21,7 +21,6 @@ export const hydrateRelationsStateStep = createStep({
   stateSchema: hydrateRelationsStateSchema,
   description: "Loads relations state from persisted file or creates new if not exists.",
   execute: async ({ setState }) => {
-    await resolveWorkspaceRoot()
     console.log(
       `[${hydrateRelationsStateStep.id}] - Loading relations state from persisted state file '${RELATIONS_OUTPUT_PATH}'.`,
     )

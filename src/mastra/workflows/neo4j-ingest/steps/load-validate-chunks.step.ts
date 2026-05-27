@@ -1,11 +1,11 @@
 import { createStep } from "@mastra/core/workflows"
 import { chunkArraySchema } from "@/mastra/workflows/entity-extraction/schemas"
-import { resolveFromProjectRoot, resolveWorkspaceRoot } from "@/mastra/workflows/lib/workspace-functions"
+import { resolveFromOutputRoot } from "@/mastra/workflows/lib/workspace-functions"
 import { access, readdir, readFile } from "node:fs/promises"
 import path from "node:path"
 import z from "zod"
 
-const CHUNKS_DIR = resolveFromProjectRoot("src/docs/chunked")
+const CHUNKS_DIR = resolveFromOutputRoot("chunked")
 
 const chunkFileArraySchema = z.array(chunkArraySchema)
 
@@ -15,7 +15,6 @@ export const loadValidateChunksStep = createStep({
   inputSchema: z.object({}),
   outputSchema: chunkArraySchema,
   execute: async () => {
-    await resolveWorkspaceRoot()
     await access(CHUNKS_DIR)
 
     const entries = await readdir(CHUNKS_DIR, { withFileTypes: true })

@@ -29,6 +29,7 @@ EXPOSE 4111
 # Tell Mastra to serve Studio from the built folder
 ENV MASTRA_STUDIO_PATH=./studio
 ENV NODE_ENV=development
+ENV OUTPUT_ROOT=/data/output
 
 # Start the server
 CMD ["node", "index.mjs"]

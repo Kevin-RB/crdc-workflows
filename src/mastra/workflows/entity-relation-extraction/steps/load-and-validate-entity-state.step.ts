@@ -1,11 +1,11 @@
 import { entityExtractionWorkflowStateSchema } from "@/mastra/workflows/entity-extraction/schemas"
-import { resolveFromProjectRoot, resolveWorkspaceRoot } from "@/mastra/workflows/lib/workspace-functions"
+import { resolveFromOutputRoot } from "@/mastra/workflows/lib/workspace-functions"
 import { createStep } from "@mastra/core/workflows"
 import { readFile } from "node:fs/promises"
 import z from "zod"
 
-const ENTITY_EXTRACTION_STATE_PATH = resolveFromProjectRoot(
-  "src/docs/entity-extraction/global-state.json",
+const ENTITY_EXTRACTION_STATE_PATH = resolveFromOutputRoot(
+  "entity-extraction/global-state.json",
 )
 
 export const loadAndValidateEntityStateStep = createStep({
@@ -14,7 +14,6 @@ export const loadAndValidateEntityStateStep = createStep({
   outputSchema: entityExtractionWorkflowStateSchema,
   description: "Loads entity state JSON and validates expected workflow schema.",
   execute: async () => {
-    await resolveWorkspaceRoot()
     console.log(`[${loadAndValidateEntityStateStep.id}] - Loading and validating entity state JSON.`)
     const raw = await readFile(ENTITY_EXTRACTION_STATE_PATH, "utf-8")
     const parsed = JSON.parse(raw)

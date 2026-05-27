@@ -3,12 +3,12 @@ import {
   EntityExtractionWorkflowState,
   entityExtractionWorkflowStateSchema,
 } from "@/mastra/workflows/entity-extraction/schemas"
-import { resolveFromProjectRoot, resolveWorkspaceRoot } from "@/mastra/workflows/lib/workspace-functions"
+import { resolveFromOutputRoot } from "@/mastra/workflows/lib/workspace-functions"
 import { mkdir, writeFile } from "node:fs/promises"
 import path from "node:path"
 
-const ENTITY_EXTRACTION_STATE_PATH = resolveFromProjectRoot(
-  "src/docs/entity-extraction/global-state.json",
+const ENTITY_EXTRACTION_STATE_PATH = resolveFromOutputRoot(
+  "entity-extraction/global-state.json",
 )
 
 export const normalizeKnownTypes = (values: string[]): string[] =>
@@ -31,7 +31,6 @@ export const buildPersistedEntityExtractionState = (state: EntityExtractionWorkf
 }
 
 export const writePersistedEntityExtractionState = async (state: EntityExtractionWorkflowState): Promise<void> => {
-  await resolveWorkspaceRoot()
   const persistedState = buildPersistedEntityExtractionState(state)
 
   await mkdir(path.dirname(ENTITY_EXTRACTION_STATE_PATH), { recursive: true })

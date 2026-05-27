@@ -22,3 +22,4 @@ dist
 /src/docs/neo4j/**
 
 **/temp
+**data/output

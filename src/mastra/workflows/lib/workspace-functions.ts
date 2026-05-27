@@ -1,18 +1,30 @@
 import path from "node:path"
 
-
-export const CHUNKED_OUTPUT_DIR = "src/docs/chunked"
-
-export const requireProjectRoot = (): string => {
-  const root = process.env.PROJECT_ROOT
-  if (!root || root.trim().length === 0) {
-    throw new Error("PROJECT_ROOT environment variable is required to resolve workspace paths.")
+export const requireDocumentsDir = (): string => {
+  const value = process.env.DOCUMENTS_DIR
+  if (!value || value.trim().length === 0) {
+    throw new Error("DOCUMENTS_DIR environment variable is required for input data.")
   }
 
-  return root
+  if (!path.isAbsolute(value)) {
+    throw new Error(`DOCUMENTS_DIR must be an absolute path, received: ${value}`)
+  }
+
+  return value
 }
 
-export const resolveWorkspaceRoot = async (): Promise<string> => requireProjectRoot()
+export const requireOutputRoot = (): string => {
+  const value = process.env.OUTPUT_ROOT
+  if (!value || value.trim().length === 0) {
+    throw new Error("OUTPUT_ROOT environment variable is required for workflow outputs.")
+  }
 
-export const resolveFromProjectRoot = (...segments: string[]): string =>
-  path.resolve(requireProjectRoot(), ...segments)
+  if (!path.isAbsolute(value)) {
+    throw new Error(`OUTPUT_ROOT must be an absolute path, received: ${value}`)
+  }
+
+  return value
+}
+
+export const resolveFromOutputRoot = (...segments: string[]): string =>
+  path.resolve(requireOutputRoot(), ...segments)

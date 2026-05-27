@@ -1,5 +1,5 @@
 import { entityExtractionPersistedStateSchema, entityExtractionWorkflowStateSchema } from "@/mastra/workflows/entity-extraction/schemas"
-import { resolveFromProjectRoot, resolveWorkspaceRoot } from "@/mastra/workflows/lib/workspace-functions"
+import { resolveFromOutputRoot } from "@/mastra/workflows/lib/workspace-functions"
 import { createStep } from "@mastra/core/workflows"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
@@ -10,7 +10,7 @@ const hydrateKnownTypesStateSchema = entityExtractionWorkflowStateSchema.pick({
   rawCandidateEntities: true,
   processedChunkIds: true,
 })
-const GLOBAL_STATE_PATH = resolveFromProjectRoot("src/docs/entity-extraction/global-state.json")
+const GLOBAL_STATE_PATH = resolveFromOutputRoot("entity-extraction/global-state.json")
 
 const normalizeKnownTypes = (values: string[]): string[] =>
   Array.from(new Set(values.map((value) => value.trim()).filter((value) => value.length > 0)))
@@ -22,7 +22,6 @@ export const hydrateKnownTypesFromFileStep = createStep({
   stateSchema: hydrateKnownTypesStateSchema,
   description: "Loads global knownTypes and rawCandidateEntities from persisted workflow state.",
   execute: async ({ inputData, setState }) => {
-    await resolveWorkspaceRoot()
     console.log(`[${hydrateKnownTypesFromFileStep.id}] - Loading known types and candidate entities from persisted state file '${GLOBAL_STATE_PATH}'.`)
     let raw: string
     try {
