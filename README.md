@@ -20,6 +20,7 @@ If you need deeper details about specific agents or workflows, start here and dr
   - [Document Chunks Workflow](src/docs/mds/workflows/document-chunks-workflow.md)
   - [Entity Extraction Workflow](src/docs/mds/workflows/entity-extraction-workflow.md)
   - [Entity Relation Extraction Workflow](src/docs/mds/workflows/entity-relation-extraction-workflow.md)
+  - [Neo4j Ingest Workflow](src/docs/mds/workflows/neo4j-ingest-workflow.md)
 - Agents:
   - [Chat Agent](src/docs/mds/agents/chat-agent.md)
   - [Entity Extraction Agent](src/docs/mds/agents/entity-extraction-agent.md)
@@ -117,6 +118,7 @@ The workflows are independent, but there is an intended order to produce the des
 1. `src/mastra/workflows/document-chunks.workflow.ts`
 2. `src/mastra/workflows/entity-extraction-workflow.ts`
 3. `src/mastra/workflows/entity-relation-extraction-workflow.ts`
+4. `src/mastra/workflows/neo4j-ingest-workflow.ts`
 
 Simple workflow diagram (top to bottom order):
 
@@ -140,12 +142,17 @@ entity-relation-extraction-workflow
   - loads chunks + entity state
   - extracts relations
   - persists relation state
+     |
+     v
+neo4j-ingest-workflow
+  - loads chunks + entity + relations
+  - ingests into Neo4j
 ```
 
 Notes:
 - The first workflow currently expects inputs that match the OpenDataLoader parsing output. You can adapt the input steps to accept another parsing/OCR tool.
 - The downstream workflows rely on files produced by the earlier steps.
-- After the workflows finish, you still need to ingest the outputs into Neo4j (or another graph database). At the moment this is done with a standalone Python script that is not yet part of this repo; it will be moved here to streamline ingestion.
+- After the workflows finish, run the Neo4j ingest workflow to load the outputs into Neo4j (or another graph database).
 
 ## Durability and Reruns
 
