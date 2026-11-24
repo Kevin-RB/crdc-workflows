@@ -85,3 +85,17 @@ pnpm run neo4j:test-index  # Test Neo4j fulltext index
 
 - [Mastra Documentation](https://mastra.ai/llms.txt)
 - [Mastra .well-known skills discovery](https://mastra.ai/.well-known/skills/index.json)
+
+## Agent skills
+
+### Issue tracker
+
+Issues, specs and wayfinder maps live in GitHub Issues for Kevin-RB/crdc-workflows (via `gh`). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five-role vocabulary (needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
