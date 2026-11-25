@@ -1,0 +1,204 @@
+# Prototype for "Draft the EU AI Act Domain Profile" (#37). Throwaway branch, never merged. Target path: profiles/eu-ai-act/profile.yaml
+name: EU AI Act
+description: >
+  Regulation (EU) 2024/1689, the EU Artificial Intelligence Act: harmonised rules for placing
+  AI systems and general-purpose AI models on the EU market. It sorts AI by risk (prohibited
+  practices, high-risk systems, transparency-only systems, general-purpose AI models with or
+  without systemic risk), assigns obligations to actors in the AI value chain (providers,
+  deployers, importers, distributors, authorised representatives), sets up governance and
+  enforcement bodies, and fixes penalties and application dates. Text is organised as
+  180 recitals, 113 articles in 13 chapters, and 13 annexes; answers should cite them.
+
+documents:
+  - file: eu-ai-act.pdf
+    title: Regulation (EU) 2024/1689 laying down harmonised rules on artificial intelligence (Artificial Intelligence Act)
+    source: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+    license: "© European Union, EUR-Lex. Reuse authorised under Commission Decision 2011/833/EU, with acknowledgement of the source."
+
+entityTypes:
+  - name: provision
+    definition: A citable division of this Regulation, named in canonical form.
+    examples: [Article 16, Article 5(1)(a), Article 6(3), Annex III, Recital 27, Chapter II]
+  - name: actor
+    definition: >
+      A role a person or organisation plays in the AI value chain or as someone affected,
+      qualified by the regime it falls under when the Act treats that regime differently.
+    examples:
+      - provider
+      - deployer
+      - importer
+      - distributor
+      - authorised representative
+      - product manufacturer
+      - downstream provider
+      - provider of high-risk AI system
+      - deployer of high-risk AI system
+      - importer of high-risk AI system
+      - distributor of high-risk AI system
+      - provider of general-purpose AI model
+      - provider of general-purpose AI model with systemic risk
+      - deployer of emotion recognition system
+      - deployer of biometric categorisation system
+      - deployer of deep fake generating AI system
+      - affected person
+  - name: authority
+    definition: A public body, Union function or designated body with tasks or powers under the Act.
+    examples: [AI Office, European Artificial Intelligence Board, market surveillance authority, notifying authority, notified body, Commission, scientific panel of independent experts]
+  - name: ai category
+    definition: A class of AI system or AI model that the Act treats under its own rules.
+    examples: [high-risk AI system, general-purpose AI model, general-purpose AI model with systemic risk, emotion recognition system, real-time remote biometric identification system]
+  - name: practice
+    definition: >
+      A use, purpose or activity involving AI that the Act prohibits, lists as high-risk or exempts.
+    examples: [social scoring, untargeted scraping of facial images, emotion recognition in the workplace, credit scoring, recruitment and selection of candidates, military use]
+  - name: obligation
+    definition: >
+      A duty or requirement the Act places on an actor or on an AI system, named as a short noun phrase.
+    examples: [risk management system, human oversight, quality management system, conformity assessment, registration in the EU database, serious incident reporting, fundamental rights impact assessment, AI literacy]
+    # duties to produce an artefact are not obligations: see `document` and SUBJECT_TO
+  - name: document
+    definition: An artefact the Act requires, produces or relies on (not another legal act).
+    examples: [technical documentation, EU declaration of conformity, instructions for use, CE marking, code of practice, harmonised standard, real-world testing plan]
+  - name: legal act
+    definition: Another Union legal act the Act refers to or amends, named by its official number and short name if any.
+    examples: [Regulation (EU) 2016/679 (GDPR), Directive (EU) 2022/2557, Regulation (EU) 2019/1020, Regulation (EU) 2018/1139]
+  - name: penalty
+    definition: A fine or other sanction, with its ceiling.
+    examples: [fine up to EUR 35 000 000 or 7 % of worldwide annual turnover, fine up to EUR 15 000 000 or 3 % of worldwide annual turnover]
+  - name: protected interest
+    definition: Something the Act aims to protect from harm.
+    examples: [health, safety, fundamental rights, democracy, rule of law, environment]
+  - name: date
+    definition: A calendar date the Act attaches a legal effect to, written as YYYY-MM-DD.
+    examples: ["2025-02-02", "2025-08-02", "2026-08-02", "2027-08-02"]
+  - name: concept
+    definition: A defined or technical notion that fits no other type, preferably as the Act's own Article 3 term.
+    examples: [intended purpose, substantial modification, serious incident, systemic risk, biometric data, training data, deep fake]
+
+extractionNotes: >
+  Cite provisions of this Regulation as "Article N(p)(x)", "Annex N", "Recital N" or "Chapter N",
+  dropping "of this Regulation". A provision of another act ("Article 4(1) of Regulation (EU) 2016/679")
+  is the legal act, not a provision.
+  Use the Act's Article 3 term where one exists ("deep fake", "deployer", not "deepfake", "user").
+  Actors: reuse a seeded actor name verbatim whenever one fits. Qualify a role only along the
+  Act's own regimes (high-risk AI system, general-purpose AI model, general-purpose AI model with
+  systemic risk, the Article 50 transparency systems), in the form "<role> of <regime>"; otherwise
+  use the bare role. Never invent other qualifiers ("high-risk provider", "providers of AI").
+  If a duty means producing, keeping or affixing an artefact (technical documentation, instructions
+  for use, EU declaration of conformity, CE marking, logs), extract only the document and link the
+  bound party with SUBJECT_TO; never create an obligation of the same name. Obligations are duties
+  that are not artefacts (human oversight, risk management system, AI literacy, serious incident reporting).
+  Recitals explain but do not legislate: from a recital extract entities and CLASSIFIED_AS,
+  REFERS_TO, RISKS_HARM_TO, but never DEFINES, PROHIBITS, IMPOSES, EXEMPTS, SUBJECT_TO,
+  SUPERVISES, PUNISHABLE_BY or APPLIES_FROM.
+  Ignore Official Journal references, footnotes, signatories and enactment formulas.
+
+relationVocabulary:
+  - name: DEFINES
+    definition: A provision gives the legal definition of an entity. Source the provision, target the defined entity.
+    example: Article 3(4) DEFINES deployer
+  - name: REFERS_TO
+    definition: A provision cites another provision or a legal act. Source the citing provision, target the cited one.
+    example: Article 6(2) REFERS_TO Annex III
+  - name: IMPOSES
+    definition: A provision creates an obligation. Source the provision, target the obligation.
+    example: Article 9 IMPOSES risk management system
+  - name: SUBJECT_TO
+    definition: An actor or AI category must meet an obligation or must produce, keep or carry a document. Source the bound actor or category, target the obligation or document.
+    example: high-risk AI system SUBJECT_TO human oversight
+  - name: REQUIRES
+    definition: One obligation or procedure needs another obligation or a document to be in place. Source the dependent, target what it needs.
+    example: conformity assessment REQUIRES technical documentation
+  - name: PROHIBITS
+    definition: A provision bans a practice. Source the provision, target the practice.
+    example: Article 5(1)(c) PROHIBITS social scoring
+  - name: EXEMPTS
+    definition: A provision takes a practice, AI category or actor out of a rule or out of the Act. Source the provision, target what is exempted.
+    example: Article 2(3) EXEMPTS military use
+  - name: CLASSIFIED_AS
+    definition: A practice or AI category falls into a (broader) AI category. Source the narrower thing, target the category.
+    example: recruitment and selection of candidates CLASSIFIED_AS high-risk AI system
+  - name: SUPERVISES
+    definition: >
+      An authority oversees, enforces or carries out an obligation, procedure or document, or oversees
+      an actor or AI category. Source the authority, target what it supervises or carries out.
+      (An actor's own duties are SUBJECT_TO, not SUPERVISES.)
+    example: notified body SUPERVISES conformity assessment
+  - name: PUNISHABLE_BY
+    definition: Breaching a prohibition or obligation can lead to a penalty. Source the practice or obligation breached, target the penalty.
+    example: social scoring PUNISHABLE_BY fine up to EUR 35 000 000 or 7 % of worldwide annual turnover
+  - name: APPLIES_FROM
+    definition: A provision or obligation takes effect on a date. Source the provision or obligation, target the date.
+    example: Chapter II APPLIES_FROM 2025-02-02
+  - name: RISKS_HARM_TO
+    definition: A practice or AI category can harm a protected interest. Source the practice or category, target the interest.
+    example: real-time remote biometric identification system RISKS_HARM_TO fundamental rights
+
+exampleQuestions:
+  - Which AI practices are prohibited, and since when?
+  - What must a provider of a high-risk AI system do before placing it on the market?
+  - When is an AI system listed in Annex III not considered high-risk?
+  - What extra obligations apply to providers of general-purpose AI models with systemic risk?
+  - What fines can be imposed for using a prohibited AI practice?
+
+chunking:
+  maxChars: 3000
+  dropSmallText: true
+  skip:                      # whole blocks dropped wherever they appear (after the first unit)
+    - '^HAVE ADOPTED THIS REGULATION'
+    - '^This Regulation shall be binding in its entirety'
+    - '^Done at Brussels'
+    - '^For the (European Parliament|Council)$'
+    - '^The President$'
+  units:                     # matched against block text at block start; ordered most- to least-specific
+    - name: recital
+      pattern: '^\((?<n>\d+)\)\s'
+      numbering: arabic      # sequence check: next expected number under the same parent
+      level: 1
+      label: 'Recitals › ({n})'
+    - name: chapter
+      pattern: '^CHAPTER (?<n>[IVXL]+)\b\s*(?<title>.*)$'
+      numbering: roman
+      level: 1
+      title: sameOrNextBlock
+      label: 'Chapter {n}'
+    - name: section
+      pattern: '^SECTION (?<n>\d+)\b\s*(?<title>.*)$'
+      numbering: arabic
+      parent: chapter
+      level: 2
+      title: sameOrNextBlock
+      label: 'Section {n}'
+    - name: article
+      pattern: '^Article (?<n>\d+)\b\s*(?<title>.*)$'
+      numbering: arabic
+      numberScope: document  # article numbers run 1..113 across chapters
+      level: 3
+      title: sameOrNextBlock
+      titleGuard: { maxChars: 250, reject: '^(\(\d+\))*\s*(of|and|,)\b' }   # "Article 18 of Regulation ..." is a cross-reference
+      label: 'Article {n} {title}'
+    - name: definition
+      pattern: '^\((?<n>\d+)\)\s+‘'
+      numbering: arabic
+      parent: article
+      level: 4
+      label: '({n})'
+    - name: paragraph
+      pattern: '^(?<n>\d+)\.\s'
+      numbering: arabic
+      parent: [article, annex]
+      level: 4
+      label: '({n})'
+    - name: point
+      pattern: '^\((?<n>[a-z])\)\s'
+      numbering: alpha       # sub-points (i), (ii) stay inside their point
+      parent: [paragraph, article, annex]
+      level: 5
+      label: '({n})'
+    - name: annex
+      pattern: '^ANNEX (?<n>[IVXL]+)\b\s*(?<title>.*)$'
+      numbering: roman
+      numberScope: document
+      level: 1
+      title: sameOrNextBlock
+      label: 'Annex {n} {title}'
