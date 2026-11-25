@@ -1,0 +1,295 @@
+# Prototype for "Draft the EU AI Act evaluation set" (#38). Throwaway branch, never merged.
+# Target path: profiles/eu-ai-act/eval.yaml. Item shape: "Evaluation set and scorers" (#32).
+#
+# expectedUnits use canonical citations, matching the profile's `provision` form:
+#   Article N, Article N(p), Article N(p)(x), Annex N, Annex N(p)(x)
+# where p is a numbered paragraph (or an Annex point "1.", "2.") and x a lettered point.
+# Article 3 definitions are Article 3(N). Article 113 has bare points: Article 113(a).
+# The scorers' unit helper turns a chunk heading path (e.g. "Chapter II › Article 5 Prohibited
+# AI practices › (1) › (c)") into this form before the equal / contains / inside match.
+#
+# Drafted from the OpenDataLoader parse on research/odl-eu-ai-act. Every referenceAnswer
+# was checked against that text by the drafting agent; a human still signs each one off.
+# 30 items: 10 lookup, 8 multi-hop, 6 definition, 6 unanswerable.
+
+# ── lookup: one provision answers it ──────────────────────────────────────────
+
+- id: prohibited-social-scoring
+  question: Is it allowed to use an AI system to give people a social score based on their behaviour?
+  category: lookup
+  referenceAnswer: >
+    No. Placing on the market, putting into service or using AI systems that evaluate or classify
+    people over time based on their social behaviour or personal characteristics is prohibited
+    when the resulting social score leads to detrimental or unfavourable treatment either in
+    unrelated social contexts or that is unjustified or disproportionate to their behaviour.
+  expectedUnits: ["Article 5(1)(c)"]
+
+- id: prohibitions-application-date
+  question: From what date do the prohibited AI practices apply?
+  category: lookup
+  referenceAnswer: >
+    Chapters I and II, which include the Article 5 prohibitions, apply from 2 February 2025.
+  expectedUnits: ["Article 113(a)"]
+
+- id: fine-prohibited-practices
+  question: What is the maximum fine for breaching the ban on prohibited AI practices?
+  category: lookup
+  referenceAnswer: >
+    Up to EUR 35 000 000 or, for an undertaking, up to 7 % of its total worldwide annual turnover
+    for the preceding financial year, whichever is higher. For SMEs and start-ups, whichever is lower.
+  expectedUnits: ["Article 99(3)"]
+  notes: The SME rule is Article 99(6); mentioning it is a bonus, not required.
+
+- id: serious-incident-death-deadline
+  question: How quickly must a provider report a serious incident involving the death of a person?
+  category: lookup
+  referenceAnswer: >
+    Immediately after the provider (or deployer) establishes or suspects a causal relationship
+    between the high-risk AI system and the incident, and not later than 10 days after becoming
+    aware of it. The general deadline for other serious incidents is 15 days.
+  expectedUnits: ["Article 73(4)"]
+  notes: Article 73(2) (15 days) is useful context; only 73(4) is required.
+
+- id: gpai-compute-threshold
+  question: Above what amount of training compute is a general-purpose AI model presumed to have high-impact capabilities?
+  category: lookup
+  referenceAnswer: >
+    When the cumulative computation used for its training is greater than 10^25 floating-point
+    operations; it is then presumed to have high-impact capabilities and so to carry systemic risk.
+  expectedUnits: ["Article 51(2)"]
+  notes: >
+    The ODL parse loses the superscript and reads "greater than 1025". If the Orchestrator
+    answers "1025 FLOPs" that is a parsing fault, not a reasoning one; worth fixing at parse time.
+
+- id: deployer-log-retention
+  question: How long must deployers of high-risk AI systems keep the logs the system generates?
+  category: lookup
+  referenceAnswer: >
+    For a period appropriate to the system's intended purpose, of at least six months, as far as
+    the logs are under their control, unless Union or national law (especially data protection law)
+    provides otherwise.
+  expectedUnits: ["Article 26(6)"]
+
+- id: emotion-recognition-workplace
+  question: Can an employer use AI to infer the emotions of its employees at work?
+  category: lookup
+  referenceAnswer: >
+    No. AI systems that infer emotions of natural persons in the workplace or in education
+    institutions are prohibited, except where the system is intended for medical or safety reasons.
+  expectedUnits: ["Article 5(1)(f)"]
+
+- id: sandbox-deadline
+  question: By when must each Member State have an AI regulatory sandbox up and running?
+  category: lookup
+  referenceAnswer: >
+    Member States must ensure their competent authorities establish at least one AI regulatory
+    sandbox at national level, operational by 2 August 2026; it may be set up jointly with other Member States.
+  expectedUnits: ["Article 57(1)"]
+
+- id: fine-misleading-information
+  question: What fine applies for giving incorrect or misleading information to a national competent authority?
+  category: lookup
+  referenceAnswer: >
+    Up to EUR 7 500 000 or, for an undertaking, up to 1 % of its total worldwide annual turnover
+    for the preceding financial year, whichever is higher.
+  expectedUnits: ["Article 99(5)"]
+
+- id: military-exclusion
+  question: Does the AI Act apply to AI systems used only for military purposes?
+  category: lookup
+  referenceAnswer: >
+    No. The Regulation does not apply to AI systems placed on the market, put into service or used
+    exclusively for military, defence or national security purposes, whoever carries out those activities.
+  expectedUnits: ["Article 2(3)"]
+
+# ── multi-hop: needs two or more provisions joined ────────────────────────────
+
+- id: annex-iii-not-high-risk
+  question: When is an AI system listed in Annex III not considered high-risk, and what must its provider still do?
+  category: multi-hop
+  referenceAnswer: >
+    It is not high-risk when it poses no significant risk of harm to health, safety or fundamental
+    rights, which applies if it only performs a narrow procedural task, improves the result of a
+    completed human activity, detects decision-making patterns without replacing human assessment,
+    or performs a preparatory task. It is always high-risk if it profiles natural persons. The
+    provider must document that assessment before placing it on the market and still register
+    it under Article 49(2), and hand the documentation to authorities on request.
+  expectedUnits: ["Article 6(3)", "Article 6(4)"]
+
+- id: provider-before-market
+  question: What must a provider of a high-risk AI system do before placing it on the market?
+  category: multi-hop
+  referenceAnswer: >
+    Ensure it meets the Chapter III Section 2 requirements, have a quality management system,
+    have it undergo the relevant conformity assessment (Article 43), draw up an EU declaration of
+    conformity (Article 47), affix the CE marking (Article 48), register it (Article 49(1)), and
+    indicate its name and contact address on the system, packaging or documentation.
+  expectedUnits: ["Article 16", "Article 43"]
+  notes: Article 16 is the hub; Article 43 tests that the agent follows at least one cross-reference.
+
+- id: gpai-systemic-risk-obligations
+  question: What extra obligations do providers of general-purpose AI models with systemic risk have?
+  category: multi-hop
+  referenceAnswer: >
+    On top of the Article 53 and 54 obligations for all general-purpose AI model providers, they must
+    evaluate the model with state-of-the-art protocols including adversarial testing, assess and
+    mitigate systemic risks at Union level, track and report serious incidents to the AI Office
+    without undue delay, and ensure adequate cybersecurity for the model and its physical infrastructure.
+  expectedUnits: ["Article 55(1)", "Article 53(1)"]
+
+- id: distributor-becomes-provider
+  question: When does a distributor or importer take on the obligations of a provider of a high-risk AI system?
+  category: multi-hop
+  referenceAnswer: >
+    When it puts its own name or trademark on a high-risk AI system already on the market, makes a
+    substantial modification that keeps it high-risk, or changes the intended purpose of a non-high-risk
+    system so that it becomes high-risk. It is then considered a provider and is subject to the
+    provider obligations under Article 16; the original provider is no longer the provider of that system.
+  expectedUnits: ["Article 25(1)", "Article 25(2)"]
+
+- id: deployer-oversight-fine
+  question: What fine can a deployer of a high-risk AI system face for failing to assign human oversight?
+  category: multi-hop
+  referenceAnswer: >
+    Assigning human oversight to competent, trained natural persons is a deployer obligation under
+    Article 26. Breaching deployer obligations under Article 26 is subject to fines of up to
+    EUR 15 000 000 or 3 % of total worldwide annual turnover, whichever is higher.
+  expectedUnits: ["Article 26(2)", "Article 99(4)"]
+
+- id: credit-scoring-fria
+  question: Is an AI system used by a bank to assess people's creditworthiness high-risk, and does the bank need a fundamental rights impact assessment?
+  category: multi-hop
+  referenceAnswer: >
+    Yes on both. Creditworthiness and credit-scoring systems are listed in Annex III point 5(b)
+    (except fraud detection), so they are high-risk under Article 6(2). Deployers of systems in
+    Annex III points 5(b) and (c) must perform a fundamental rights impact assessment before first
+    use and notify the market surveillance authority of its results.
+  expectedUnits: ["Annex III(5)(b)", "Article 27(1)"]
+
+- id: open-source-gpai
+  question: Which general-purpose AI model obligations still apply to a model released under a free and open-source licence?
+  category: multi-hop
+  referenceAnswer: >
+    If its weights, architecture and usage information are public, it is exempt from the technical
+    documentation and downstream-provider information duties (Article 53(1)(a) and (b)) and from
+    appointing an authorised representative, but must still have a copyright compliance policy and
+    publish a summary of the training content. None of these exemptions apply if the model has systemic risk.
+  expectedUnits: ["Article 53(2)", "Article 53(1)", "Article 54(6)"]
+
+- id: gpai-fines-application
+  question: From when can the Commission fine providers of general-purpose AI models?
+  category: multi-hop
+  referenceAnswer: >
+    The general-purpose AI model rules and the penalties chapter apply from 2 August 2025, but
+    Article 101 (Commission fines on general-purpose AI model providers, up to 3 % of worldwide
+    turnover or EUR 15 000 000) is excluded from that date, so it applies from the general
+    application date, 2 August 2026.
+  expectedUnits: ["Article 113(b)", "Article 101(1)"]
+  notes: Hard item; the answer depends on reading an exception inside Article 113(b) against the main date.
+
+# ── definition: Article 3 ────────────────────────────────────────────────────
+
+- id: def-ai-system
+  question: How does the AI Act define an AI system?
+  category: definition
+  referenceAnswer: >
+    A machine-based system designed to operate with varying levels of autonomy, that may adapt after
+    deployment, and that, for explicit or implicit objectives, infers from its input how to generate
+    outputs such as predictions, content, recommendations or decisions that can influence physical
+    or virtual environments.
+  expectedUnits: ["Article 3(1)"]
+
+- id: def-deployer
+  question: Who counts as a deployer under the AI Act?
+  category: definition
+  referenceAnswer: >
+    A natural or legal person, public authority, agency or other body using an AI system under its
+    authority, except where it is used in a personal non-professional activity.
+  expectedUnits: ["Article 3(4)"]
+
+- id: def-deep-fake
+  question: What is a deep fake according to the AI Act?
+  category: definition
+  referenceAnswer: >
+    AI-generated or manipulated image, audio or video content that resembles existing persons,
+    objects, places, entities or events and would falsely appear to a person to be authentic or truthful.
+  expectedUnits: ["Article 3(60)"]
+
+- id: def-serious-incident
+  question: What counts as a serious incident?
+  category: definition
+  referenceAnswer: >
+    An incident or malfunctioning of an AI system that directly or indirectly leads to death or serious
+    harm to health, serious and irreversible disruption of critical infrastructure, infringement of
+    Union law obligations protecting fundamental rights, or serious harm to property or the environment.
+  expectedUnits: ["Article 3(49)"]
+
+- id: def-substantial-modification
+  question: What is a substantial modification of an AI system?
+  category: definition
+  referenceAnswer: >
+    A change after placing on the market or putting into service that was not foreseen in the initial
+    conformity assessment and that affects compliance with the Chapter III Section 2 requirements or
+    modifies the intended purpose for which the system was assessed.
+  expectedUnits: ["Article 3(23)"]
+
+- id: def-gpai-model
+  question: What is a general-purpose AI model?
+  category: definition
+  referenceAnswer: >
+    An AI model, including one trained on large amounts of data with self-supervision at scale, that
+    displays significant generality, can competently perform a wide range of distinct tasks however it
+    is placed on the market, and can be integrated into many downstream systems or applications.
+    Models used only for research, development or prototyping before market placement are excluded.
+  expectedUnits: ["Article 3(63)"]
+
+# ── unanswerable: the Act does not say; the agent should decline without citing ──
+
+- id: na-german-authority
+  question: Which German authority is the market surveillance authority for the AI Act?
+  category: unanswerable
+  referenceAnswer: >
+    The Act does not name national authorities; Member States designate them themselves.
+  expectedUnits: []
+
+- id: na-fines-imposed
+  question: Which companies have been fined under the AI Act so far, and for how much?
+  category: unanswerable
+  referenceAnswer: >
+    The Act sets fine ceilings but records no enforcement decisions.
+  expectedUnits: []
+
+- id: na-output-copyright
+  question: Under the AI Act, who owns the copyright in content generated by an AI system?
+  category: unanswerable
+  referenceAnswer: >
+    The Act does not decide ownership of AI outputs; it only requires general-purpose AI model
+    providers to have a copyright compliance policy.
+  expectedUnits: []
+  notes: >
+    Near miss: Article 53(1)(c) is about copyright, but not ownership. Checks that the agent
+    does not stretch a related provision into an answer.
+
+- id: na-chatbot-minimum-age
+  question: What is the minimum age to use an AI chatbot under the AI Act?
+  category: unanswerable
+  referenceAnswer: >
+    The Act sets no minimum age for using AI systems.
+  expectedUnits: []
+
+- id: na-digital-omnibus
+  question: How does the Digital Omnibus change the application dates of the high-risk rules?
+  category: unanswerable
+  referenceAnswer: >
+    Later amending proposals are not part of Regulation (EU) 2024/1689 as published; the text gives no answer.
+  expectedUnits: []
+  notes: Tests that the agent answers from the corpus, not from model knowledge of later news.
+
+- id: na-damages
+  question: How much compensation can a person claim for harm caused by a high-risk AI system?
+  category: unanswerable
+  referenceAnswer: >
+    The Act creates no right to compensation or damages; it gives a right to complain to a market
+    surveillance authority and a right to an explanation, but civil liability is outside it.
+  expectedUnits: []
+  notes: Near miss on Articles 85 and 86.
